@@ -16,11 +16,17 @@ export default function Card({value, suit}) {
             for (let i = 0; i < num_values.length; i++) {
                 const suit = suits[k];
                 const value = num_values[i];
-                deck.push(
-                   <div key={value + suit.symbol} className={`card ${suit.color}`}> 
-                        <div className="top-left">{value}{suit.symbol}</div>
+                if (value === 'A') {
+                    deck.push(
+                        <div key={value + suit.symbol} className={`card ${suit.color}`}> 
+                            <div className="top-left-number">{value}</div>
+                            <div className="top-left-suit">{suit.symbol}</div>
+                            <div className="bottom-right-suit">{suit.symbol}</div> 
+                            <div className="middle">{suit.symbol}</div>
+                            <div className="upside-down">{value}</div>
                     </div>
-                );
+                    );
+                }
            }
     }
         return (   
