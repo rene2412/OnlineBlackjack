@@ -1,0 +1,14 @@
+.table_styles {
+    display: flex;
+    justify-content: center; 
+    align-items: center;     
+    width: 100%;
+    height: 100vh;           
+  }
+  
+  .table_styles canvas {
+    width: 800px;
+    height: auto;
+    display: block;
+  }
+  
