@@ -11,7 +11,7 @@
    transform: translate(-50%, -50%);
    width: 45px;
    height: 70px;
-   font-size: 16px;
+   font-size: 11px;
    background-color: rgb(255, 255, 255);
    border: 2px solid rgb(0, 0, 0);
 }
@@ -21,25 +21,180 @@
 }
 .top-left-suit {
    position: absolute;
-   top: 18px;
-   left: 1px;
-   font-size: 10px;
+   top: 11px;
+   left: 0px;
+   font-size: 8px;
 }
 .middle { 
    display: flex;
    justify-content: center; 
    align-items: center; 
-   height: 30px;
+   height: 40px;
+}
+.second {
+   display: flex;
+   justify-content: center; 
+   align-items: center; 
+   height: 15px;
+}
+.second2 {
+   display: flex;
+   justify-content: center; 
+   align-items: center; 
+   height: 25px;
+}
+.third0 {
+   display: flex;
+   justify-content: center; 
+   align-items: center; 
+   height: 0px;
+}
+.third1 {
+   display: flex;
+   justify-content: center; 
+   align-items: center; 
+   height: 37px;
+}
+.third2 {
+   display: flex;
+   justify-content: center; 
+   align-items: center; 
+   height: 3px;
+}
+.fourth0 {
+   position: absolute;
+   top: 0px;
+   left: 7px; 
+}
+.fourth1 {
+   position: absolute;
+   top: 0px;
+   left: 22px; 
+}
+.fourth2 {
+   position: absolute;
+   bottom: 0px;
+   right: 22px; 
+}
+.fourth3 {
+   position: absolute;
+   bottom: 0px;
+   right: 7px; 
 }
  .bottom-right-suit {
    position: absolute;
-   bottom: 16px;
-   right: 1px;
-   font-size: 10px; 
+    transform: rotate(180deg);
+   bottom: 12px;
+   right: 0px;
+   font-size: 8px; 
+ }
+ .middle-left {
+   position: absolute;
+   top: 25px;
+   left: 7px;
  } 
+  .middle-right {
+   position: absolute;
+   top: 25px;
+   right: 7px;
+ }
+ .middle-top {
+   display: flex;
+   justify-content: center; 
+   align-items: center; 
+   height: 15px;
+ }
+ .middle-bottom {
+   display: flex;
+   justify-content: center; 
+   align-items: center; 
+   height: 35px;
+ }
+ .middle-left-1 {
+   position: absolute;
+   top: 18px;
+   left: 6px;
+ }
+  .middle-left-2 {
+   position: absolute;
+   top: 35px;
+   left: 6px;
+ }
+ .middle-right-1 {
+   position: absolute;
+   top: 18px;
+   right: 6px;
+ }
+ .middle-right-2 {
+   position: absolute;
+   top: 35px;
+   right: 6px;
+ }
+  .middle-top-2 {
+   display: flex;
+   justify-content: center; 
+   align-items: center; 
+   height: 41px;
+ }
+   .middle-top-3 {
+   display: flex;
+   justify-content: center; 
+   align-items: center; 
+   height: 30px;
+ }
+ .ten-middle-top-left {
+   position: absolute;
+   top: 0px;
+   left: 8px;
+ }
+ .ten-middle-top-right {
+   position: absolute;
+   top: 0px;
+   right: 10px;
+ }
+ .ten-left-1 {
+   position: absolute;
+   top: 18px;
+   left: 8px;
+ } 
+ .ten-left-2 {
+   position: absolute;
+   top: 36px;
+   left: 8px;
+ }
+  .ten-left-3 {
+   position: absolute;
+   top: 55px;
+   left: 8px;
+ }
+  .ten-right-1 {
+   position: absolute;
+   top: 18px;
+   right: 10px;
+ } 
+ .ten-right-2 {
+   position: absolute;
+   top: 36px;
+   right: 10px;
+ }
+  .ten-right-3 {
+   position: absolute;
+   top: 55px;
+   right: 10px;
+ }
+ .ten-top-middle {
+   position: absolute;
+   top: 9px;
+   left: 14px;
+}
+  .ten-bottom-middle {
+   position: absolute;
+   top: 45px;
+   left: 14px;
+}
 .upside-down {
    position: absolute;
    transform: rotate(180deg);
    bottom: 0px;
-   right: 3px;
+   right: 1px;
 }
