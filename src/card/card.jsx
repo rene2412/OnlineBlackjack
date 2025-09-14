@@ -171,9 +171,47 @@ export default function Card({value, suit}) {
                     );
              }
              if (value === 'J') {
-                           <div className="top-left-number">{value}</div>
+                  deck.push(
+                     <div className="card">
+                     <div className="top-left-number">{value}</div>
+                     <div className="top-left-suit">{suit.symbol}</div>
+                     <div className="bottom-right-suit">{suit.symbol}</div> 
+                     <div className="upside-down">{value}</div>
+                     <div className="face-inside-suites">{suit.symbol}</div>
+                     <div className="upside-down-face-inside-suites">{suit.symbol}</div>
+                     <img src="/J_Face.png" alt="Jack" className="Jack-Face"/>
+
+                    </div>
+                 );
+             } 
+             if (value === 'K') {
+                  deck.push(
+                     <div className="card">
+                     <div className="top-left-number">{value}</div>
+                     <div className="top-left-suit">{suit.symbol}</div>
+                     <div className="bottom-right-suit">{suit.symbol}</div> 
+                     <div className="upside-down">{value}</div>
+                     <div className="face-inside-suites">{suit.symbol}</div>
+                     <div className="upside-down-face-inside-suites">{suit.symbol}</div>
+                     <img src="/K-Face.png" alt="King" className="King-Face"/>
+
+                    </div>
+                 );
+             }     
+              if (value === 'Q') {
+                  deck.push(
+                     <div className="card">
+                     <div className="top-left-number">{value}</div>
+                     <div className="top-left-suit">{suit.symbol}</div>
+                     <div className="bottom-right-suit">{suit.symbol}</div> 
+                     <div className="upside-down">{value}</div>
+                     <div className="face-inside-suites">{suit.symbol}</div>
+                     <div className="upside-down-face-inside-suites">{suit.symbol}</div>
+                     <img src="/Q-Face.png" alt="Queen" className="Queen-Face"/>
+
+                    </div>
+                 );
              }
-                 
         }
     }
         return (   

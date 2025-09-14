@@ -9,9 +9,9 @@
    top: 50%;
    left: 50%;
    transform: translate(-50%, -50%);
-   width: 45px;
+   width: 50px;
    height: 70px;
-   font-size: 11px;
+   font-size: 9px;
    background-color: rgb(255, 255, 255);
    border: 2px solid rgb(0, 0, 0);
 }
@@ -22,14 +22,14 @@
 .top-left-suit {
    position: absolute;
    top: 11px;
-   left: 0px;
-   font-size: 8px;
+   left: -0.8px;
+   font-size: 5px;
 }
 .middle { 
    display: flex;
    justify-content: center; 
    align-items: center; 
-   height: 40px;
+   height: 45px;
 }
 .second {
    display: flex;
@@ -64,52 +64,56 @@
 .fourth0 {
    position: absolute;
    top: 0px;
-   left: 7px; 
+   left: 12px; 
 }
 .fourth1 {
    position: absolute;
    top: 0px;
-   left: 22px; 
+   left: 26px; 
 }
 .fourth2 {
    position: absolute;
    bottom: 0px;
-   right: 22px; 
+   right: 9px; 
 }
 .fourth3 {
    position: absolute;
    bottom: 0px;
-   right: 7px; 
+   right: 23px; 
 }
  .bottom-right-suit {
    position: absolute;
     transform: rotate(180deg);
    bottom: 12px;
-   right: 0px;
-   font-size: 8px; 
+   right: -1px;
+   font-size: 5px; 
  }
  .middle-left {
    position: absolute;
    top: 25px;
-   left: 7px;
+   left: 12px;
  } 
   .middle-right {
    position: absolute;
    top: 25px;
-   right: 7px;
+   right: 10px;
  }
  .middle-top {
    display: flex;
    justify-content: center; 
    align-items: center; 
-   height: 15px;
+   height: 18px;
+   position: relative;
+   left: 2px;
  }
  .middle-bottom {
    display: flex;
    justify-content: center; 
    align-items: center; 
    height: 35px;
- }
+   position: relative;
+   left: 2px;
+  }
  .middle-left-1 {
    position: absolute;
    top: 18px;
@@ -185,16 +189,52 @@
  .ten-top-middle {
    position: absolute;
    top: 9px;
-   left: 14px;
+   left: 18px;
 }
   .ten-bottom-middle {
    position: absolute;
    top: 45px;
-   left: 14px;
+   left: 18px;
 }
 .upside-down {
    position: absolute;
    transform: rotate(180deg);
    bottom: 0px;
-   right: 1px;
+   right: 0px;
+}
+.Jack-Face {
+  width: 38px;       
+  height: 57px;
+  position: absolute;  
+  top: 8px;           
+  left: 6px;
+}
+.King-Face {
+  width: 38px;       
+  height: 57px;
+  position: absolute;  
+  top: 8px;           
+  left: 6px;
+}
+.Queen-Face {
+  width: 37.5px;       
+  height: 57px;
+  position: absolute;  
+  top: 8px;           
+  left: 6px;
+}
+.face-inside-suites {
+   position: absolute;
+   top: 9px;
+   left: 6px;
+   font-size: 9px;
+   z-index: 1;
+}
+.upside-down-face-inside-suites {
+   position: absolute;
+   bottom: 6px;
+   right: 6px;
+   font-size: 9px;
+   z-index: 1;
+   transform: rotate(180deg)
 }
