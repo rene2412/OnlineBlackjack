@@ -1,19 +1,43 @@
 .deck {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  position: relative;
+  gap: 6px
 }
 
 .card {
-   position: relative;
-   top: 50%;
-   left: 50%;
-   transform: translate(-50%, -50%);
-   width: 50px;
-   height: 70px;
-   font-size: 9px;
-   background-color: rgb(255, 255, 255);
-   border: 2px solid rgb(0, 0, 0);
+  top: 30%;
+  left: 50%;
+  width: 50px;
+  height: 70px;
+  font-size: 9px;
+  background-color: rgb(255, 255, 255);
+  border: 2px solid rgb(0, 0, 0);
+  position: absolute;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  transition: transform 0.8s;
+  cursor: pointer;
+  transform: translate(0, 0%) rotateX(60deg) rotateY(180deg) rotateZ(120deg)
+}
+
+.card .front,
+.card .card-backside {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+}
+.card .card-backside img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
+}
+.card .card-backside { 
+   transform: rotateY(180deg); 
+ } 
+.card-flipped {
+  transform:  translate(50px, -50px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
 }
 .top-left-number {
    top: 5px;
@@ -208,6 +232,7 @@
   position: absolute;  
   top: 8px;           
   left: 6px;
+  backface-visibility: hidden;
 }
 .King-Face {
   width: 38px;       
@@ -215,6 +240,7 @@
   position: absolute;  
   top: 8px;           
   left: 6px;
+  backface-visibility: hidden;
 }
 .Queen-Face {
   width: 37.5px;       
@@ -222,6 +248,7 @@
   position: absolute;  
   top: 8px;           
   left: 6px;
+  backface-visibility: hidden;
 }
 .face-inside-suites {
    position: absolute;

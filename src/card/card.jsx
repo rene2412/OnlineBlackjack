@@ -17,30 +17,53 @@ export default function Card({value, suit}) {
                 const value = num_values[i];
                 if (value === 'A') {
                     deck.push(
-                        <div key={value + suit.symbol} className={`card ${suit.color}`}> 
+                       <div
+                        key={value + suit.symbol}
+                            className={`card ${suit.color}`}
+                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                             >
+                            <div className="front">
                             <div className="top-left-number">{value}</div>
                             <div className="top-left-suit">{suit.symbol}</div>
-                            <div className="bottom-right-suit">{suit.symbol}</div> 
+                            <div className="bottom-right-suit">{suit.symbol}</div>
                             <div className="middle">{suit.symbol}</div>
                             <div className="upside-down">{value}</div>
+                            </div>
+                            <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
                         </div>
                     );
                 }
                 if (value === '2') {
                     deck.push(
-                    <div key={value + suit.symbol} className={`card ${suit.color}`}>
+                          <div
+                            key={value + suit.symbol}
+                            className={`card ${suit.color}`}
+                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                             >
+                            <div className="front">
                             <div className="upside-down">{value}</div>
                             <div className="top-left-number">{value}</div>
                             <div className="top-left-suit">{suit.symbol}</div>
                             <div className="bottom-right-suit">{suit.symbol}</div> 
                             <div className="second">{suit.symbol}</div>
                             <div className="second2">{suit.symbol}</div>
+                            </div>
+                             <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
                     </div>
                     );
                 }
                 if (value === '3') {
                     deck.push(
-                         <div key={value + suit.symbol} className={`card ${suit.color}`}>
+                        <div
+                            key={value + suit.symbol}
+                            className={`card ${suit.color}`}
+                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                             >
+                           <div className="front">
                            <div className="top-left-number">{value}</div>
                            <div className="top-left-suit">{suit.symbol}</div>
                            <div className="bottom-right-suit">{suit.symbol}</div> 
@@ -48,12 +71,21 @@ export default function Card({value, suit}) {
                            <div className="third0">{suit.symbol}</div>
                            <div className="third1">{suit.symbol}</div>
                            <div className="third2">{suit.symbol}</div>
+                            </div>
+                            <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
                         </div>
                     );
                 }
                 if (value === '4') {
                     deck.push(
-                         <div key={value + suit.symbol} className={`card ${suit.color}`}>
+                        <div
+                            key={value + suit.symbol}
+                            className={`card ${suit.color}`}
+                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                             >
+                           <div className="front">
                            <div className="top-left-number">{value}</div>
                            <div className="top-left-suit">{suit.symbol}</div>
                            <div className="bottom-right-suit">{suit.symbol}</div> 
@@ -62,13 +94,21 @@ export default function Card({value, suit}) {
                            <div className="fourth1">{suit.symbol}</div>
                            <div className="fourth2">{suit.symbol}</div>
                            <div className="fourth3">{suit.symbol}</div>
+                           </div>
+                            <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
                         </div> 
                     );       
               }
               if (value === '5') {
                 deck.push(
-                        <div key={value + suit.symbol} className={`card ${suit.color}`}>
-                           <div className="top-left-number">{value}</div>
+                        <div
+                            key={value + suit.symbol}
+                            className={`card ${suit.color}`}
+                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                             >
+                           <div className="front">
                            <div className="top-left-suit">{suit.symbol}</div>
                            <div className="bottom-right-suit">{suit.symbol}</div> 
                            <div className="upside-down">{value}</div>
@@ -77,12 +117,21 @@ export default function Card({value, suit}) {
                            <div className="fourth2">{suit.symbol}</div>
                            <div className="fourth3">{suit.symbol}</div>
                            <div className="middle">{suit.symbol}</div>
+                           </div>
+                            <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
                         </div>  
                 );
             }
             if (value === '6') {
                 deck.push(
-                      <div key={value + suit.symbol} className={`card ${suit.color}`}>
+                        <div
+                            key={value + suit.symbol}
+                            className={`card ${suit.color}`}
+                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                             >
+                           <div className="front">
                            <div className="top-left-number">{value}</div>
                            <div className="top-left-suit">{suit.symbol}</div>
                            <div className="bottom-right-suit">{suit.symbol}</div> 
@@ -93,12 +142,21 @@ export default function Card({value, suit}) {
                            <div className="fourth3">{suit.symbol}</div>
                            <div className="middle-left">{suit.symbol}</div>
                            <div className="middle-right">{suit.symbol}</div>
+                           </div>
+                            <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
                         </div>  
                 );
             }
             if (value === '7') {
                        deck.push(
-                      <div key={value + suit.symbol} className={`card ${suit.color}`}>
+                        <div
+                            key={value + suit.symbol}
+                            className={`card ${suit.color}`}
+                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                             >
+                           <div className="front">
                            <div className="top-left-number">{value}</div>
                            <div className="top-left-suit">{suit.symbol}</div>
                            <div className="bottom-right-suit">{suit.symbol}</div> 
@@ -110,12 +168,21 @@ export default function Card({value, suit}) {
                            <div className="middle-left">{suit.symbol}</div>
                            <div className="middle-right">{suit.symbol}</div>
                            <div className="middle-top">{suit.symbol}</div>
+                           </div>
+                            <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
                         </div>    
                     );
             }
              if (value === '8') {
                        deck.push(
-                      <div key={value + suit.symbol} className={`card ${suit.color}`}>
+                        <div
+                            key={value + suit.symbol}
+                            className={`card ${suit.color}`}
+                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                             >
+                           <div className="front">
                            <div className="top-left-number">{value}</div>
                            <div className="top-left-suit">{suit.symbol}</div>
                            <div className="bottom-right-suit">{suit.symbol}</div> 
@@ -128,12 +195,21 @@ export default function Card({value, suit}) {
                            <div className="middle-right">{suit.symbol}</div>
                            <div className="middle-top">{suit.symbol}</div>
                            <div className="middle-bottom">{suit.symbol}</div>
+                           </div>
+                            <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
                         </div>    
                     );
             }
             if (value === '9') {
                  deck.push(
-                      <div key={value + suit.symbol} className={`card ${suit.color}`}>
+                      <div
+                            key={value + suit.symbol}
+                            className={`card ${suit.color}`}
+                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                             >
+                           <div className="front">
                            <div className="top-left-number">{value}</div>
                            <div className="top-left-suit">{suit.symbol}</div>
                            <div className="bottom-right-suit">{suit.symbol}</div> 
@@ -148,11 +224,20 @@ export default function Card({value, suit}) {
                            <div className="fourth2">{suit.symbol}</div>
                            <div className="fourth3">{suit.symbol}</div>
                            </div>
+                            <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
+                           </div>
                  );
             }
              if (value === '10') {
                  deck.push(
-                      <div key={value + suit.symbol} className={`card ${suit.color}`}>
+                     <div
+                            key={value + suit.symbol}
+                            className={`card ${suit.color}`}
+                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                             >
+                           <div className="front">
                            <div className="top-left-number">{value}</div>
                            <div className="top-left-suit">{suit.symbol}</div>
                            <div className="bottom-right-suit">{suit.symbol}</div> 
@@ -168,53 +253,87 @@ export default function Card({value, suit}) {
                            <div className="ten-top-middle">{suit.symbol}</div>
                            <div className="ten-bottom-middle">{suit.symbol}</div>
                            </div>
+                            <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
+                           </div>
                     );
              }
              if (value === 'J') {
                   deck.push(
-                     <div className="card">
+                        <div
+                            key={value + suit.symbol}
+                            className={`card ${suit.color}`}
+                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                             >
+                   <div className="front">
                      <div className="top-left-number">{value}</div>
                      <div className="top-left-suit">{suit.symbol}</div>
                      <div className="bottom-right-suit">{suit.symbol}</div> 
                      <div className="upside-down">{value}</div>
                      <div className="face-inside-suites">{suit.symbol}</div>
                      <div className="upside-down-face-inside-suites">{suit.symbol}</div>
+                     </div>
                      <img src="/J_Face.png" alt="Jack" className="Jack-Face"/>
-
+                      <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
                     </div>
                  );
              } 
              if (value === 'K') {
                   deck.push(
-                     <div className="card">
+                    <div
+                          key={value + suit.symbol}
+                          className={`card ${suit.color}`}
+                          onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                         >
+                   <div className="front">
                      <div className="top-left-number">{value}</div>
                      <div className="top-left-suit">{suit.symbol}</div>
                      <div className="bottom-right-suit">{suit.symbol}</div> 
                      <div className="upside-down">{value}</div>
                      <div className="face-inside-suites">{suit.symbol}</div>
                      <div className="upside-down-face-inside-suites">{suit.symbol}</div>
+                     </div>
                      <img src="/K-Face.png" alt="King" className="King-Face"/>
-
+                         <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
                     </div>
                  );
              }     
               if (value === 'Q') {
                   deck.push(
-                     <div className="card">
+                    <div
+                        key={value + suit.symbol}
+                        className={`card ${suit.color}`}
+                            onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                    >
+                   <div className="front">
                      <div className="top-left-number">{value}</div>
                      <div className="top-left-suit">{suit.symbol}</div>
                      <div className="bottom-right-suit">{suit.symbol}</div> 
                      <div className="upside-down">{value}</div>
                      <div className="face-inside-suites">{suit.symbol}</div>
                      <div className="upside-down-face-inside-suites">{suit.symbol}</div>
+                    </div>
                      <img src="/Q-Face.png" alt="Queen" className="Queen-Face"/>
-
+                         <div className="card-backside">
+                            <img src="/card-backside.png" alt="backside" />
+                            </div>
                     </div>
                  );
              }
+
         }
     }
-        return (   
-                <div className="deck">{deck} </div>            
+
+    function Shuffle(deck) {
+        
+    }
+        return ( 
+
+                <div className="deck">{deck} </div>  
         );
 }
