@@ -330,10 +330,15 @@ export default function Card({value, suit}) {
     }
 
     function Shuffle(deck) {
-        
+        const array = [...deck];
+        for (let i = array.length; i > 0; i--) {
+            let random_index = Math.floor(Math.random() * (array.length + 1));
+             [array[i], array[random_index]] = [array[random_index], array[i]];    
+        }
+        return array;
     }
+    const random_deck = Shuffle(deck);
         return ( 
-
-                <div className="deck">{deck} </div>  
+                <div className="deck">{random_deck} </div>  
         );
 }
