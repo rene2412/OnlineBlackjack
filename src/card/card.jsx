@@ -331,13 +331,30 @@ export default function Card({value, suit}) {
 
     function Shuffle(deck) {
         const array = [...deck];
-        for (let i = array.length; i > 0; i--) {
-            let random_index = Math.floor(Math.random() * (array.length + 1));
+        for (let i = array.length - 1; i > 0; i--) {
+            let random_index = Math.floor(Math.random() * (i + 1));
              [array[i], array[random_index]] = [array[random_index], array[i]];    
         }
         return array;
     }
+    
+    const sendDeckToBackend = async (deck) => {
+        try {
+        const response = await fetch("http://localhost:8080/api/shuffle", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ deck })  // send the array
+    });
+
+    const data = await response.json();
+    console.log("Backend response:", data);
+  } catch (err) {
+    console.error("Error sending deck:", err);
+  }
+};
+
     const random_deck = Shuffle(deck);
+    sendDeckToBackend(random_deck);
         return ( 
                 <div className="deck">{random_deck} </div>  
         );
