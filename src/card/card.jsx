@@ -8,6 +8,7 @@ const suits = [
     { symbol: '♥️', color: "red"   },
     { symbol: '♦️', color: "red"   }
 ]
+const cards = [];
 
 export default function Card({value, suit}) {
     const deck = []; 
@@ -16,9 +17,9 @@ export default function Card({value, suit}) {
                 const suit = suits[k];
                 const value = num_values[i];
                 if (value === 'A') {
-                    deck.push(
+		    deck.push(
                        <div
-                        key={value + suit.symbol}
+                        key={value}
                             className={`card ${suit.color}`}
                               onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                              >
@@ -38,7 +39,7 @@ export default function Card({value, suit}) {
                 if (value === '2') {
                     deck.push(
                           <div
-                            key={value + suit.symbol}
+                            key={value}
                             className={`card ${suit.color}`}
                               onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                              >
@@ -59,7 +60,7 @@ export default function Card({value, suit}) {
                 if (value === '3') {
                     deck.push(
                         <div
-                            key={value + suit.symbol}
+                            key={value}
                             className={`card ${suit.color}`}
                               onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                              >
@@ -81,7 +82,7 @@ export default function Card({value, suit}) {
                 if (value === '4') {
                     deck.push(
                         <div
-                            key={value + suit.symbol}
+                            key={value}
                             className={`card ${suit.color}`}
                               onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                              >
@@ -104,7 +105,7 @@ export default function Card({value, suit}) {
               if (value === '5') {
                 deck.push(
                         <div
-                            key={value + suit.symbol}
+                            key={value}
                             className={`card ${suit.color}`}
                               onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                              >
@@ -127,7 +128,7 @@ export default function Card({value, suit}) {
             if (value === '6') {
                 deck.push(
                         <div
-                            key={value + suit.symbol}
+                            key={value}
                             className={`card ${suit.color}`}
                               onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                              >
@@ -152,7 +153,7 @@ export default function Card({value, suit}) {
             if (value === '7') {
                        deck.push(
                         <div
-                            key={value + suit.symbol}
+                            key={value}
                             className={`card ${suit.color}`}
                               onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                              >
@@ -178,7 +179,7 @@ export default function Card({value, suit}) {
              if (value === '8') {
                        deck.push(
                         <div
-                            key={value + suit.symbol}
+                            key={value}
                             className={`card ${suit.color}`}
                               onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                              >
@@ -205,7 +206,7 @@ export default function Card({value, suit}) {
             if (value === '9') {
                  deck.push(
                       <div
-                            key={value + suit.symbol}
+                            key={value}
                             className={`card ${suit.color}`}
                               onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                              >
@@ -231,9 +232,9 @@ export default function Card({value, suit}) {
                  );
             }
              if (value === '10') {
-                 deck.push(
+                 	deck.push(
                      <div
-                            key={value + suit.symbol}
+                            key={value}
                             className={`card ${suit.color}`}
                               onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                              >
@@ -262,7 +263,7 @@ export default function Card({value, suit}) {
              if (value === 'J') {
                   deck.push(
                         <div
-                            key={value + suit.symbol}
+                            key={value}
                             className={`card ${suit.color}`}
                               onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                              >
@@ -284,7 +285,7 @@ export default function Card({value, suit}) {
              if (value === 'K') {
                   deck.push(
                     <div
-                          key={value + suit.symbol}
+                          key={value}
                           className={`card ${suit.color}`}
                           onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                          >
@@ -306,7 +307,7 @@ export default function Card({value, suit}) {
               if (value === 'Q') {
                   deck.push(
                     <div
-                        key={value + suit.symbol}
+                        key={value}
                         className={`card ${suit.color}`}
                             onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
                     >
@@ -325,8 +326,7 @@ export default function Card({value, suit}) {
                     </div>
                  );
              }
-
-        }
+         }
     }
 
     function Shuffle(deck) {
@@ -334,7 +334,7 @@ export default function Card({value, suit}) {
         for (let i = array.length - 1; i > 0; i--) {
             let random_index = Math.floor(Math.random() * (i + 1));
              [array[i], array[random_index]] = [array[random_index], array[i]];    
-        }
+	}
         return array;
     }
     
@@ -343,7 +343,7 @@ export default function Card({value, suit}) {
         const response = await fetch("http://localhost:8080/api/shuffle", {
          method: "POST",
          headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ deck })  // send the array
+         body: JSON.stringify({ deck }) 
     });
 
     const data = await response.json();
@@ -354,7 +354,10 @@ export default function Card({value, suit}) {
 };
 
     const random_deck = Shuffle(deck);
-    sendDeckToBackend(random_deck);
+    const onlyValues = random_deck.map(d => `${d.key}`);
+    sendDeckToBackend(onlyValues);
+    console.log("Random deck:", random_deck);
+    console.log("Values: ", onlyValues);
         return ( 
                 <div className="deck">{random_deck} </div>  
         );
