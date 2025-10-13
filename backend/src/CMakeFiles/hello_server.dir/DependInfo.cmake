@@ -8,11 +8,17 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/rene/OnlineBlackjack/backend/src/deck.cpp" "CMakeFiles/hello_server.dir/deck.cpp.o" "gcc" "CMakeFiles/hello_server.dir/deck.cpp.o.d"
+  "/home/rene/OnlineBlackjack/backend/src/game.cpp" "CMakeFiles/hello_server.dir/game.cpp.o" "gcc" "CMakeFiles/hello_server.dir/game.cpp.o.d"
   "/home/rene/OnlineBlackjack/backend/src/main.cpp" "CMakeFiles/hello_server.dir/main.cpp.o" "gcc" "CMakeFiles/hello_server.dir/main.cpp.o.d"
   )
 
-# Targets to which this target links.
-set(CMAKE_TARGET_LINKED_INFO_FILES
+# Targets to which this target links which contain Fortran sources.
+set(CMAKE_Fortran_TARGET_LINKED_INFO_FILES
+  )
+
+# Targets to which this target links which contain Fortran sources.
+set(CMAKE_Fortran_TARGET_FORWARD_LINKED_INFO_FILES
   )
 
 # Fortran module output directory.

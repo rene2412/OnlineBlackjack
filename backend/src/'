@@ -1,0 +1,11 @@
+#pragma once
+#include "player.h"
+#include "dealer.h"
+
+class Game {
+   private:
+   	vector<Player> players;
+   	Dealer dealer;
+   public:
+	Game() = default;
+};
