@@ -33,16 +33,18 @@ void Game::Insurance(std::vector<std::shared_ptr<Player>> &players, int index) {
 }
 
 
-void Game::Push(std::vector<std::shared_ptr<Player>> &players) {
-		ClearHand(players);
+void Game::Push(std::vector<std::shared_ptr<Player>> &players, int index) {
+		ClearHand(players, index);
 }
 
 void Game::Dealer_BlackJack(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck) {
 	if (dealer.count() == BLACKJACK) {
+		int index = 0;
 		for (auto &player : players) {
 			if (player->count() == BLACKJACK) { 
-				Push(players);							
+				Push(players, index);							
 			 }	
+			 index ++;
 		 }
          }
 

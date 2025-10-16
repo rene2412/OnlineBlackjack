@@ -12,7 +12,7 @@ int main() {
     Deck card_deck;
     Game game;
     Dealer dealer;
-
+/*
     int player_count;
     cout << "Dealer: \"How Many Players?\"?" << endl; 
     cin >> player_count;
@@ -20,6 +20,7 @@ int main() {
 	  Player player("Rene Hernandez", 100, 0, 0); 
 	  game.push_back(player);
     }
+	  */
     drogon::app()
         .addListener("0.0.0.0", 8080)
         .setDocumentRoot("../../dist");
