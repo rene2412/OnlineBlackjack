@@ -9,4 +9,4 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <Table/>
     <Card/>
   </React.StrictMode>
-);
+); 

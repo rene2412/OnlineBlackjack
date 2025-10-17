@@ -2,12 +2,27 @@ import React, { useState } from "react";
 import Card from "../card/card.jsx";
 import "../card/card.css";
 
-export default function Animations({front, back}) {
-    const [flipped, setFlipped] = useState(false);
+
+/*
+function Deal() {
+  const [playerCard, setPlayerCard] = useState(0);
+  const [dealerCard, setDealerCard] = useState(0);
+  let i  = 0;
+  let playerCount = 0;
+  let dealerCount = 0;
+    <div className="card-player-flip" 
+      onClick={() =>playerCard(playerCount++)}
+    >
+    </div> 
+}
+*/
+
+export default function Animations({value, suit}) {
+    const [playerFlipped, setPlayerFlipped] = useState(false);
  return (
     <div
-      className={`card-container ${flipped ? "card-flipped" : ""}`}
-      onClick={() => setFlipped(!flipped)}
+      className={`card-container ${playerFlipped ? "card-player-flip" : ""}`}
+      onClick={() => setPlayerFlipped(!playerFlipped)}
     >
       <Card value={value} suit={suit} />
 

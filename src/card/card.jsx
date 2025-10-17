@@ -21,7 +21,7 @@ export default function Card({value, suit}) {
                        <div
                         key={value}
                             className={`card ${suit.color}`}
-                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                //                  onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                              >
                             <div className="front">
                             <div className="top-left-number">{value}</div>
@@ -41,7 +41,7 @@ export default function Card({value, suit}) {
                           <div
                             key={value}
                             className={`card ${suit.color}`}
-                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                 //                 onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                              >
                             <div className="front">
                             <div className="upside-down">{value}</div>
@@ -62,7 +62,7 @@ export default function Card({value, suit}) {
                         <div
                             key={value}
                             className={`card ${suit.color}`}
-                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                 //                 onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                              >
                            <div className="front">
                            <div className="top-left-number">{value}</div>
@@ -84,7 +84,7 @@ export default function Card({value, suit}) {
                         <div
                             key={value}
                             className={`card ${suit.color}`}
-                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+               //                   onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                              >
                            <div className="front">
                            <div className="top-left-number">{value}</div>
@@ -107,9 +107,10 @@ export default function Card({value, suit}) {
                         <div
                             key={value}
                             className={`card ${suit.color}`}
-                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                   //               onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                              >
                            <div className="front">
+                           <div className="top-left-number">{value}</div>
                            <div className="top-left-suit">{suit.symbol}</div>
                            <div className="bottom-right-suit">{suit.symbol}</div> 
                            <div className="upside-down">{value}</div>
@@ -130,7 +131,7 @@ export default function Card({value, suit}) {
                         <div
                             key={value}
                             className={`card ${suit.color}`}
-                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                           //   onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                              >
                            <div className="front">
                            <div className="top-left-number">{value}</div>
@@ -155,7 +156,7 @@ export default function Card({value, suit}) {
                         <div
                             key={value}
                             className={`card ${suit.color}`}
-                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                       //       onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                              >
                            <div className="front">
                            <div className="top-left-number">{value}</div>
@@ -181,7 +182,7 @@ export default function Card({value, suit}) {
                         <div
                             key={value}
                             className={`card ${suit.color}`}
-                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+             //                 onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                              >
                            <div className="front">
                            <div className="top-left-number">{value}</div>
@@ -208,7 +209,7 @@ export default function Card({value, suit}) {
                       <div
                             key={value}
                             className={`card ${suit.color}`}
-                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                     //         onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                              >
                            <div className="front">
                            <div className="top-left-number">{value}</div>
@@ -236,7 +237,7 @@ export default function Card({value, suit}) {
                      <div
                             key={value}
                             className={`card ${suit.color}`}
-                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+             //                 onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                              >
                            <div className="front">
                            <div className="top-left-number">{value}</div>
@@ -265,7 +266,7 @@ export default function Card({value, suit}) {
                         <div
                             key={value}
                             className={`card ${suit.color}`}
-                              onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                       //      onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                              >
                    <div className="front">
                      <div className="top-left-number">{value}</div>
@@ -287,7 +288,7 @@ export default function Card({value, suit}) {
                     <div
                           key={value}
                           className={`card ${suit.color}`}
-                          onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                          //   onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                          >
                    <div className="front">
                      <div className="top-left-number">{value}</div>
@@ -309,7 +310,7 @@ export default function Card({value, suit}) {
                     <div
                         key={value}
                         className={`card ${suit.color}`}
-                            onClick={(e) => e.currentTarget.classList.toggle("card-flipped")}
+                              //onClick={(e) => e.currentTarget.classList.toggle("card-player-flip")}
                     >
                    <div className="front">
                      <div className="top-left-number">{value}</div>
@@ -352,8 +353,16 @@ export default function Card({value, suit}) {
     console.error("Error sending deck:", err);
   }
 };
+   
+    function DealAnimation(deck) {
+        <div>
+        <button className="card-player-flip">Start</button>
+        </div>
+    }
+     
 
     const random_deck = Shuffle(deck);
+
     const onlyValues = random_deck.map(d => `${d.key}`);
     sendDeckToBackend(onlyValues);
     console.log("Random deck:", random_deck);

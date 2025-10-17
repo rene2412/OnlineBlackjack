@@ -1,13 +1,15 @@
 .deck {
   display: flex;
   flex-wrap: wrap;
-  position: relative;
-  gap: 6px
+  position: fixed;
+  top: 28vh;
+  right: 17vw;
+  gap: 6px;
 }
 
 .card {
-  top: 30%;
-  left: 50%;
+  top: 0%;
+  right: 0%;
   width: 50px;
   height: 70px;
   font-size: 9px;
@@ -18,7 +20,7 @@
   transform-style: preserve-3d;
   transition: transform 0.8s;
   cursor: pointer;
-  transform: translate(0, 0%) rotateX(60deg) rotateY(180deg) rotateZ(120deg)
+  transform: translate(0, 0%) rotateX(60deg) rotateY(180deg) rotateZ(120deg) 
 }
 
 .card .front,
@@ -36,9 +38,9 @@
 .card .card-backside { 
    transform: rotateY(180deg); 
  } 
-.card-flipped {
-  transform:  translate(50px, -50px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
-}
+ .card-player-flip {
+  transform: translate(-50px, 115px) rotateX(40deg) rotateY(180deg) rotateZ(30deg);
+ }
 .top-left-number {
    top: 5px;
    left: 3px;
