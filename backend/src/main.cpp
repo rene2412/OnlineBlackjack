@@ -12,7 +12,7 @@ int main() {
     Deck card_deck;
     Game game;
     Dealer dealer;
-/*
+
     int player_count;
     cout << "Dealer: \"How Many Players?\"?" << endl; 
     cin >> player_count;
@@ -20,7 +20,7 @@ int main() {
 	  Player player("Rene Hernandez", 100, 0, 0); 
 	  game.push_back(player);
     }
-	  */
+
     drogon::app()
         .addListener("0.0.0.0", 8080)
         .setDocumentRoot("../../dist");
@@ -38,7 +38,7 @@ int main() {
     		for (const auto &val : deckArray) {
 		    //json_text.push_back(val.asString());
 		    string card = val.asString();
-	    	    if (card == "A") card = "1";
+	    	if (card == "A") card = "1";
 		    if (card == "K") card = "10";
 		    if (card == "J") card = "10";
 		    if (card == "Q") card = "10";
@@ -48,6 +48,7 @@ int main() {
 		    } catch(...) {}	    
 		  }
 		}
+	    reverse(card_deck.GetDeck().begin(), card_deck.GetDeck().end());
 		for (int x : card_deck.GetDeck()) {
 			cout << x << endl;
      		} 
@@ -55,11 +56,14 @@ int main() {
 	  	dealer.ShowDeck();
 	   	for (auto &p : game.GetPlayers()) {
 			p->ShowDeck(); 
+			} 
+			game.Play(game.GetPlayers(), dealer, card_deck.GetDeck());
+		for (auto &p : game.GetPlayers()) {
+				p->ShowDeck(); 
+			} 
 		}
-	    }
 	    else
                 cout << "Error: No JSON received" << endl;
-            
             auto resp = drogon::HttpResponse::newHttpJsonResponse({{"status", "ok"}});
             callback(resp);
         },

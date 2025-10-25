@@ -22,7 +22,7 @@ class Dealer {
 		return sum;
 	   }
 	   void ShowDeck() {
-		//std::cout << "Dealer Size: " << cards.size() << std::endl;
+		std::cout << "Dealer Cards: ";
 	   	for (int i = 0; i < cards.size(); i++) {
 			std::cout << cards[i] << " : ";
 		}

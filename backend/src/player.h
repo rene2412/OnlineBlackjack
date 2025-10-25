@@ -30,6 +30,7 @@ class Player {
 	   }
 
 	   void ShowDeck() {
+		std::cout << "Player Cards: ";
 	   	for (int i = 0; i < cards.size(); i++) {
 	       		std::cout << cards[i] << " : ";
 		}

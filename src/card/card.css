@@ -39,7 +39,10 @@
    transform: rotateY(180deg); 
  } 
  .card-player-flip {
-  transform: translate(-50px, 115px) rotateX(40deg) rotateY(180deg) rotateZ(30deg);
+  transform: translate(-100px, 105px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+ }
+ .card-dealer-flip {
+  transform: translate(-350px, -90px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
  }
 .top-left-number {
    top: 5px;
