@@ -12,6 +12,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/rene/OnlineBlackjack/backend/src/logic/deck.cpp" "CMakeFiles/hello_server.dir/logic/deck.cpp.o" "gcc" "CMakeFiles/hello_server.dir/logic/deck.cpp.o.d"
   "/home/rene/OnlineBlackjack/backend/src/logic/game.cpp" "CMakeFiles/hello_server.dir/logic/game.cpp.o" "gcc" "CMakeFiles/hello_server.dir/logic/game.cpp.o.d"
   "/home/rene/OnlineBlackjack/backend/src/logic/main.cpp" "CMakeFiles/hello_server.dir/logic/main.cpp.o" "gcc" "CMakeFiles/hello_server.dir/logic/main.cpp.o.d"
+  "/home/rene/OnlineBlackjack/backend/src/socket/webSocket.cpp" "CMakeFiles/hello_server.dir/socket/webSocket.cpp.o" "gcc" "CMakeFiles/hello_server.dir/socket/webSocket.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

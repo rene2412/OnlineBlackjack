@@ -7,6 +7,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/hello_server.dir/logic/game.cpp.o.d"
   "CMakeFiles/hello_server.dir/logic/main.cpp.o"
   "CMakeFiles/hello_server.dir/logic/main.cpp.o.d"
+  "CMakeFiles/hello_server.dir/socket/webSocket.cpp.o"
+  "CMakeFiles/hello_server.dir/socket/webSocket.cpp.o.d"
   "hello_server"
   "hello_server.pdb"
 )

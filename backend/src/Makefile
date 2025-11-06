@@ -225,6 +225,30 @@ logic/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/logic/main.cpp.s
 .PHONY : logic/main.cpp.s
 
+socket/webSocket.o: socket/webSocket.cpp.o
+.PHONY : socket/webSocket.o
+
+# target to build an object file
+socket/webSocket.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/socket/webSocket.cpp.o
+.PHONY : socket/webSocket.cpp.o
+
+socket/webSocket.i: socket/webSocket.cpp.i
+.PHONY : socket/webSocket.i
+
+# target to preprocess a source file
+socket/webSocket.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/socket/webSocket.cpp.i
+.PHONY : socket/webSocket.cpp.i
+
+socket/webSocket.s: socket/webSocket.cpp.s
+.PHONY : socket/webSocket.s
+
+# target to generate assembly for a file
+socket/webSocket.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/socket/webSocket.cpp.s
+.PHONY : socket/webSocket.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -246,6 +270,9 @@ help:
 	@echo "... logic/main.o"
 	@echo "... logic/main.i"
 	@echo "... logic/main.s"
+	@echo "... socket/webSocket.o"
+	@echo "... socket/webSocket.i"
+	@echo "... socket/webSocket.s"
 .PHONY : help
 
 
