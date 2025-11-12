@@ -4,7 +4,7 @@ import "./actions.css"
 export default function HitOrStand() {
      async function handleClick(action)  {
        try{
-        const response = fetch('/api/current-player-decision', {
+        const response = await fetch('/api/current-player-decision', {
          method: 'POST',
          headers: {
             "Content-Type": 'application/json'

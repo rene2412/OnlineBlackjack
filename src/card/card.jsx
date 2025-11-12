@@ -1,5 +1,7 @@
-import React from "react"
-import "./card.css"
+import React, { useEffect } from "react"
+import { useRef } from "react";
+import "./card.css";
+import "../actions/actions.css";
 
 const num_values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'K', 'Q'];
 const suits = [
@@ -10,16 +12,22 @@ const suits = [
 ]
 const cards = [];
 
-export default function Card({value, suit}) {
-    const deck = []; 
+export default function Card({ cardRef}) {
+    useEffect(() => {
+      cardRef.current = [];
+    }, []);
+
+    const deck = [];
         for (let k = 0; k < suits.length; k++) {
             for (let i = 0; i < num_values.length; i++) {
                 const suit = suits[k];
                 const value = num_values[i];
+                const cardIndex = k * num_values.length + i;
                 if (value === 'A') {
 		    deck.push(
                        <div
-                        key={value}
+                        key={ `${value}-${suit.symbol}`}
+                         //   ref={el => { if (el) cardRef[cardIndex] = el }}
                             className={`card ${suit.color}`}
                              >
                             <div className="front">
@@ -39,6 +47,7 @@ export default function Card({value, suit}) {
                     deck.push(
                           <div
                             key={value}
+                 //           ref={el => { if (el) cardRef[cardIndex] = el }}
                             className={`card ${suit.color}`}
                              >
                             <div className="front">
@@ -59,6 +68,7 @@ export default function Card({value, suit}) {
                     deck.push(
                         <div
                             key={value}
+                 //           ref={el => { if (el) cardRef[cardIndex] = el }}
                             className={`card ${suit.color}`}
                              >
                            <div className="front">
@@ -80,6 +90,7 @@ export default function Card({value, suit}) {
                     deck.push(
                         <div
                             key={value}
+                 //           ref={el => { if (el) cardRef[cardIndex] = el }}
                             className={`card ${suit.color}`}
                              >
                            <div className="front">
@@ -102,6 +113,7 @@ export default function Card({value, suit}) {
                 deck.push(
                         <div
                             key={value}
+               //             ref={el => { if (el) cardRef[cardIndex] = el }}
                             className={`card ${suit.color}`}
                              >
                            <div className="front">
@@ -125,6 +137,7 @@ export default function Card({value, suit}) {
                 deck.push(
                         <div
                             key={value}
+             //               ref={el => { if (el) cardRef[cardIndex] = el }}
                             className={`card ${suit.color} `}
                              >
                            <div className="front">
@@ -149,6 +162,7 @@ export default function Card({value, suit}) {
                        deck.push(
                         <div
                             key={value}
+             //               ref={el => { if (el) cardRef[cardIndex] = el }}
                             className={`card ${suit.color}`}
                              >
                            <div className="front">
@@ -174,6 +188,7 @@ export default function Card({value, suit}) {
                        deck.push(
                         <div
                             key={value}
+                //            ref={el => { if (el) cardRef[cardIndex] = el }}
                             className={`card ${suit.color} `}
                              >
                            <div className="front">
@@ -200,6 +215,7 @@ export default function Card({value, suit}) {
                  deck.push(
                       <div
                             key={value}
+             //               ref={el => { if (el) cardRef[cardIndex] = el }}
                             className={`card ${suit.color} `}
                              >
                            <div className="front">
@@ -227,6 +243,7 @@ export default function Card({value, suit}) {
                  	deck.push(
                      <div
                             key={value}
+             //               ref={el => { if (el) cardRef[cardIndex] = el }}
                             className={`card ${suit.color} `}
                              >
                            <div className="front">
@@ -255,6 +272,7 @@ export default function Card({value, suit}) {
                   deck.push(
                         <div
                             key={value}
+              //              ref={el => { if (el) cardRef[cardIndex] = el }}
                             className={`card ${suit.color} `}
                              >
                    <div className="front">
@@ -276,6 +294,7 @@ export default function Card({value, suit}) {
                   deck.push(
                     <div
                           key={value}
+               //           ref={el => { if (el) cardRef[cardIndex] = el }}
                           className={`card ${suit.color}`}
                          >
                    <div className="front">
@@ -297,6 +316,7 @@ export default function Card({value, suit}) {
                   deck.push(
                     <div
                         key={value}
+                 //         ref={el => { if (el) cardRef[cardIndex] = el }}
                         className={`card ${suit.color}`}
                     >
                    <div className="front">
@@ -315,6 +335,7 @@ export default function Card({value, suit}) {
                  );
              }
          }
+         console.log("Original Card Ref Size: ", cardRef.current);
     }
 
     function Shuffle(deck) {
@@ -342,8 +363,14 @@ export default function Card({value, suit}) {
 };
   
 const random_deck = React.useMemo(() => Shuffle(deck), []);
-  React.useEffect(() => {
+
+React.useEffect(() => {
       const cards = document.querySelectorAll(".card");
+      console.log("📍 Cards found in DOM:", cards.length);
+        
+        // Populate the ref
+        cardRef.current = Array.from(cards);
+        console.log("📍 CardRef populated:", cardRef.current.length);
       const baseDelay = 750;
       cards.forEach((card, i) =>  {
         if (i < 4) {          
@@ -355,10 +382,14 @@ const random_deck = React.useMemo(() => Shuffle(deck), []);
             }
          }
       });
-  }, []);
-
-    const onlyValues = random_deck.map(d => `${d.key}`);
+  }, [cardRef]);
+    
+  const onlyValues = random_deck.map(d => `${d.key}`);
+  React.useEffect(() => { 
+  const onlyValues = random_deck.map(d => `${d.key}`);
     sendDeckToBackend(onlyValues);
+  }, []);
+  
     console.log("Random deck:", random_deck);
     console.log("Values: ", onlyValues);
         return ( 
