@@ -306,4 +306,8 @@ CMakeFiles/hello_server.dir/logic/game.cpp.o: \
  /usr/local/include/drogon/nosql/RedisResult.h \
  /usr/local/include/drogon/nosql/RedisException.h \
  /usr/local/include/drogon/nosql/RedisSubscriber.h \
- /usr/local/include/trantor/net/Resolver.h
+ /usr/local/include/trantor/net/Resolver.h \
+ /home/rene/OnlineBlackjack/backend/src/logic/../socket/webSocket.h \
+ /usr/local/include/drogon/WebSocketController.h \
+ /usr/local/include/drogon/WebSocketConnection.h \
+ /usr/include/jsoncpp/json/value.h

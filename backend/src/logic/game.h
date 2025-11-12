@@ -41,7 +41,8 @@ class Game {
 	void Push(std::vector<std::shared_ptr<Player>> &players, int index);
 	void Insurance(std::vector<std::shared_ptr<Player>> &players, int index);
 	void Dealer_BlackJack(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
+	void Player_BlackJack(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
 	void PlayerDecisions(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, std::string action);
-	void Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
+	void Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck, int index);
 };
 

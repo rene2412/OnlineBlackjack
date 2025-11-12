@@ -448,6 +448,7 @@ CMakeFiles/hello_server.dir/logic/deck.cpp.o: logic/deck.cpp \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h
 
 CMakeFiles/hello_server.dir/logic/game.cpp.o: logic/game.cpp \
+  socket/webSocket.h \
   logic/dealer.h \
   logic/deck.h \
   logic/game.h \
@@ -791,6 +792,8 @@ CMakeFiles/hello_server.dir/logic/game.cpp.o: logic/game.cpp \
   /usr/local/include/drogon/RequestStream.h \
   /usr/local/include/drogon/Session.h \
   /usr/local/include/drogon/UploadFile.h \
+  /usr/local/include/drogon/WebSocketConnection.h \
+  /usr/local/include/drogon/WebSocketController.h \
   /usr/local/include/drogon/drogon_callbacks.h \
   /usr/local/include/drogon/exports.h \
   /usr/local/include/drogon/nosql/RedisClient.h \

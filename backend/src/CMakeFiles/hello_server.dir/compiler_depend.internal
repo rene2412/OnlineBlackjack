@@ -451,6 +451,7 @@ CMakeFiles/hello_server.dir/logic/deck.cpp.o
 
 CMakeFiles/hello_server.dir/logic/game.cpp.o
  /home/rene/OnlineBlackjack/backend/src/logic/game.cpp
+ /home/rene/OnlineBlackjack/backend/src/socket/webSocket.h
  /home/rene/OnlineBlackjack/backend/src/logic/dealer.h
  /home/rene/OnlineBlackjack/backend/src/logic/deck.h
  /home/rene/OnlineBlackjack/backend/src/logic/game.h
@@ -794,6 +795,8 @@ CMakeFiles/hello_server.dir/logic/game.cpp.o
  /usr/local/include/drogon/RequestStream.h
  /usr/local/include/drogon/Session.h
  /usr/local/include/drogon/UploadFile.h
+ /usr/local/include/drogon/WebSocketConnection.h
+ /usr/local/include/drogon/WebSocketController.h
  /usr/local/include/drogon/drogon_callbacks.h
  /usr/local/include/drogon/exports.h
  /usr/local/include/drogon/nosql/RedisClient.h

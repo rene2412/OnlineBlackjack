@@ -11,6 +11,7 @@ class Player {
 	   int score = 0;
 	   int wins = 0; 
 	   int losses = 0;
+	   int wager = 0;
 	   //TO DO LATER: networking connections here	   
    public:
 	   Player() = default;
@@ -20,14 +21,18 @@ class Player {
 		   }
 	   
 	   std::string GetName() const { return name; }
-	   
-	   int count() {
+	   int GetWager() const { return wager; }
+	   int GetBalance() const { return balance; }
+
+	   int GetCount() {
 	   	int sum = 0;
 		for (int i = 0; i < cards.size(); i++) { 
 			sum += cards[i];
 		}
 		return sum;
 	   }
+
+	   void SetBalance(int newBalance) { balance = newBalance; }
 
 	   void ShowDeck() {
 		std::cout << "Player Cards: ";

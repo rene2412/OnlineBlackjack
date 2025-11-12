@@ -39,7 +39,8 @@ int main() {
     drogon::app().registerHandler("/api/shuffle",
         [&card_deck, &game, &dealer](const drogon::HttpRequestPtr &req,
            std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
-            auto json = req->getJsonObject();
+      try {        
+			auto json = req->getJsonObject();
             if (json) { 
 	     if ((*json)["deck"].isArray()) { 
 		const auto &deckArray = (*json)["deck"];  
@@ -51,27 +52,25 @@ int main() {
 		    if (card == "K") card = "10";
 		    if (card == "J") card = "10";
 		    if (card == "Q") card = "10";
-		    try {
 		    int number = stoi(card);
 		    card_deck.push_back(number);
-		    } catch(...) {}	    
-		  }
 		}
 	    reverse(card_deck.GetDeck().begin(), card_deck.GetDeck().end());
-		for (int x : card_deck.GetDeck()) {
-			cout << x << endl;
-     		} 
 		game.Deal(game.GetPlayers(), dealer, card_deck.GetDeck());
 		PrintDealerHand();
 		PrintPlayerHands();
-		game.Play(game.GetPlayers(), dealer, card_deck.GetDeck());
-		std::cout << game.GetPlayers().size() << std::endl;
+		game.Play(game.GetPlayers(), dealer, card_deck.GetDeck(), 0);
 		}
-		else
+		else {
                 cout << "Error: No JSON received" << endl;
-            auto resp = drogon::HttpResponse::newHttpJsonResponse({{"status", "ok"}});
+			}         
+			auto resp = drogon::HttpResponse::newHttpJsonResponse({{"status", "ok"}});
             callback(resp);
-        },
+		}   
+	} catch(...) {
+		std::cerr << "Unknown exception in api/shuffle\n";
+		}
+	},
         {drogon::Post}
     );
     
