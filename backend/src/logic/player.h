@@ -12,28 +12,34 @@ class Player {
 	   int wins = 0; 
 	   int losses = 0;
 	   int wager = 0;
+	   bool bust = false;
 	   //TO DO LATER: networking connections here	   
    public:
 	   Player() = default;
-	   Player(std::string new_name, int new_balance, int new_wins, int new_losses) : 
-		   name(new_name), balance(new_balance), wins(new_wins), losses(new_losses) {
+	   Player(std::string new_name, int new_balance, int new_wins, int new_losses, int new_bust) : 
+		   name(new_name), balance(new_balance), wins(new_wins), losses(new_losses), bust(new_bust) {
 		   	player_count ++;
 		   }
 	   
+	   const std::deque<int> &GetDeck() const { return cards; }
 	   std::string GetName() const { return name; }
 	   int GetWager() const { return wager; }
 	   int GetBalance() const { return balance; }
+	   bool GetBust() const { return bust; }
 
+	   void SetBalance(int newBalance) { balance = newBalance; }
+	   void SetBust(bool newBust) { bust = newBust; }
+
+	   void push_back(int N) { cards.push_back(N); }
+	   void ClearHand() { cards.clear(); }   
+	   
 	   int GetCount() {
 	   	int sum = 0;
 		for (int i = 0; i < cards.size(); i++) { 
 			sum += cards[i];
 		}
 		return sum;
-	   }
-
-	   void SetBalance(int newBalance) { balance = newBalance; }
-
+	}	
 	   void ShowDeck() {
 		std::cout << "Player Cards: ";
 	   	for (int i = 0; i < cards.size(); i++) {
@@ -41,8 +47,5 @@ class Player {
 		}
 		std::cout << std::endl;	
 	   }
-	   
-	   void push_back(int N) { cards.push_back(N); }
-	   std::deque<int> GetDeck() const { return cards; }
 	   
 };

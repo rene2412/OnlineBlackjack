@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 export default function useGameSocket(onMessage) {
   useEffect(() => {
-        console.log("🔄 Attempting WebSocket connection...");
+    console.log("🔄 Attempting WebSocket connection...");
     const socket = new WebSocket("ws://localhost:8080/ws/game");
 
     socket.onopen = () => {
@@ -24,7 +24,10 @@ export default function useGameSocket(onMessage) {
     };
 
     return () => {
-      socket.close();
+         if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+            console.log(" Cleaning up WebSocket");
+            socket.close();
+      }
     };
-  }, [onMessage]);
+  }, []);
 }

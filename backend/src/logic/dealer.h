@@ -10,7 +10,7 @@ class Dealer {
       	   	
       public:
 	   Dealer()  {};
-	   std::deque<int> GetDealerCards() const { return cards; }
+	   const std::deque<int>& GetDealerCards() const { return cards; }
 	   
 	   void push_back(int N) { cards.push_back(N); }
 	   

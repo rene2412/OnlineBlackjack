@@ -27,7 +27,7 @@ int main() {
     cout << "Dealer: \"How Many Players?\"?" << endl; 
     cin >> player_count;
     if (player_count == 1) {
-	  Player player("Rene Hernandez", 100, 0, 0); 
+	  Player player("Rene Hernandez", 100, 0, 0, false); 
 	  game.push_back(player);
     }
 
@@ -45,15 +45,23 @@ int main() {
 	     if ((*json)["deck"].isArray()) { 
 		const auto &deckArray = (*json)["deck"];  
 		cout << "Received deck: " << json->toStyledString() << endl;
-    		for (const auto &val : deckArray) {
+		 card_deck.GetDeck().clear();
+		 for (const auto &val : deckArray) {
 		    //json_text.push_back(val.asString());
 		    string card = val.asString();
-	    	if (card == "A") card = "1";
-		    if (card == "K") card = "10";
-		    if (card == "J") card = "10";
-		    if (card == "Q") card = "10";
-		    int number = stoi(card);
-		    card_deck.push_back(number);
+			if (card.empty()) {
+				continue;
+			}
+	    	if (card[0] == 'A') { 
+				card_deck.push_back(1);
+				continue;
+			}
+		    else if (card[0] == 'K' or card[0] == 'J' or card[0] == 'Q') { 
+				card_deck.push_back(10);
+				continue;
+			}
+		    	int number = stoi(card);
+		    	card_deck.push_back(number);
 		}
 	    reverse(card_deck.GetDeck().begin(), card_deck.GetDeck().end());
 		game.Deal(game.GetPlayers(), dealer, card_deck.GetDeck());
@@ -64,11 +72,16 @@ int main() {
 		else {
                 cout << "Error: No JSON received" << endl;
 			}         
-			auto resp = drogon::HttpResponse::newHttpJsonResponse({{"status", "ok"}});
-            callback(resp);
+			Json::Value responseJson;
+			responseJson["status"] = "ok";
+			auto resp = drogon::HttpResponse::newHttpJsonResponse(responseJson);
+			callback(resp);
 		}   
-	} catch(...) {
-		std::cerr << "Unknown exception in api/shuffle\n";
+	} catch(std::exception &e) {
+		std::cerr << "Unknown exception in api/shuffle: " << e.what() << std::endl;
+		  auto resp = drogon::HttpResponse::newHttpResponse();
+    		resp->setStatusCode(drogon::k500InternalServerError);
+    		callback(resp);
 		}
 	},
         {drogon::Post}

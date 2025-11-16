@@ -17,7 +17,7 @@ class GameWebSocketController : public drogon::WebSocketController<GameWebSocket
         static void EventAPI(const std::string &message);
 
         WS_PATH_LIST_BEGIN
-        WS_PATH_ADD("/ws/game");
+            WS_PATH_ADD("/ws/game");
         WS_PATH_LIST_END
 
 };

@@ -29,6 +29,9 @@ void Game::PlayerHit(std::vector<std::shared_ptr<Player>> &players, std::deque<i
 		std::cout << "Deck Is Empty: Time to reshuffle\n";
 		return;
 	}
+	if (players[index]->GetBust() == true) {
+		return;
+	}
 	int current_card = deck.back();
 	deck.pop_back();
 	players[index]->push_back(current_card);
@@ -36,7 +39,7 @@ void Game::PlayerHit(std::vector<std::shared_ptr<Player>> &players, std::deque<i
 
 void Game::ClearHand(std::vector<std::shared_ptr<Player>> &players, int index)  {
 	auto player = players[index];
-	player->GetDeck().clear();
+	player->ClearHand();
 }
 
 void Game::Insurance(std::vector<std::shared_ptr<Player>> &players, int index) {
@@ -77,7 +80,27 @@ void Game::Player_BlackJack(std::vector<std::shared_ptr<Player>> &players, Deale
 	}
 }
 
-void Game::PlayerDecisions(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, std::string action) {
+int Game::DealerStand(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck) {
+	if (dealer.count() > 17) {
+		return 0;
+	}
+	int animationCount = 0;
+	while (dealer.count() <= 17) {
+	   if (deck.empty()) {
+			std::cout << "Time for Reshuffle\n";
+			return -1;
+		}
+		int card = deck.back();
+		deck.pop_back();
+		dealer.push_back(card);
+		dealer.ShowDeck();
+		std::cout << "Dealer Count: " << dealer.count() << std::endl;
+		animationCount ++;
+	}
+	return animationCount;
+ }
+
+void Game::PlayerDecisions(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, Dealer &dealer, std::string action) {
 	int index = 0;
 	for (auto player : players) {
 		SetCurrentPlayer(index);
@@ -93,7 +116,8 @@ void Game::PlayerDecisions(std::vector<std::shared_ptr<Player>> &players, std::d
 			index ++;
 	  }
 	  	if (action == "stand") {
-	  		std::string animation = "{\"event\": \"dealerHit\"}";
+			int count = DealerStand(players, dealer, deck);
+	  		std::string animation = "{\"event\": \"dealerHit\", \"count\": " + std::to_string(count) + "}";
 			GameWebSocketController::EventAPI(animation);
 		}
 	}
@@ -103,9 +127,13 @@ void Game::Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
 		std::cout << "Player Count: " << players[index]->GetCount() << std::endl;
 			if (players[index]->GetCount() > 21) {
 						std::cout << players[index]->GetName() << ", has busted!" << std::endl;
-						ClearHand(players, index);
-						std::string playerBust = "{\"event\": \"playerBust\"}";
-						GameWebSocketController::EventAPI(playerBust);
-		}
+						//ClearHand(players, index);
+						if (players[index]->GetBust() == false) {
+							std::cout << "Sending  API\n";
+							std::string playerBust = "{\"event\": \"playerBust\"}";
+							GameWebSocketController::EventAPI(playerBust);
+							players[index]->SetBust(true);
+						}
+			}
 }
 

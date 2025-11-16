@@ -17,7 +17,7 @@ void GameController::CurrentPlayerDecision(const drogon::HttpRequestPtr &req,
         auto &deck = game.GetDeckInstance();
         std::cout << "Game Size: " << game.GetPlayers().size() << std::endl;
         //backend update for player HIT or STAND
-        game.PlayerDecisions(game.GetPlayers(), deck.GetDeck(), action);
+        game.PlayerDecisions(game.GetPlayers(), deck.GetDeck(), dealer, action);
         game.Play(game.GetPlayers(), dealer, deck.GetDeck(), 0);
         //tell front end to activatre the card hit animation
         for (auto &p : game.GetPlayers()) {
