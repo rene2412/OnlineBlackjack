@@ -20,12 +20,13 @@ void PrintPlayerHands() {
 void PrintDealerHand() {
 	dealer.ShowDeck();
 }
-int main() {
+int main(int argc, char* argv[]) {
     vector<string> json_text;
 
     int player_count;
-    cout << "Dealer: \"How Many Players?\"?" << endl; 
-    cin >> player_count;
+	stringstream input(argv[1]);
+	input >> player_count;
+	cout << "Dealer: \"How Many Players?\"?" << endl; 
     if (player_count == 1) {
 	  Player player("Rene Hernandez", 100, 0, 0, false); 
 	  game.push_back(player);

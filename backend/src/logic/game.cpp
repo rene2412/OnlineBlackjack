@@ -42,6 +42,12 @@ void Game::ClearHand(std::vector<std::shared_ptr<Player>> &players, int index)  
 	player->ClearHand();
 }
 
+void Game::ResetHands(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer) {
+	for (auto &player : players) {
+			player->ClearHand();
+	}
+	dealer.ClearHand();
+}
 void Game::Insurance(std::vector<std::shared_ptr<Player>> &players, int index) {
 	auto player = players[index];
 	std::string name = player->GetName();
@@ -104,7 +110,7 @@ void Game::PlayerDecisions(std::vector<std::shared_ptr<Player>> &players, std::d
 	int index = 0;
 	for (auto player : players) {
 		SetCurrentPlayer(index);
-		if (action == "hit") {
+		if (action == "hit" and player->GetCount() < 21) {
     			PlayerHit(players, deck, index);
 				player->ShowDeck();
 			try {	
@@ -126,14 +132,48 @@ void Game::PlayerDecisions(std::vector<std::shared_ptr<Player>> &players, std::d
 void Game::Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck, int index) {
 		std::cout << "Player Count: " << players[index]->GetCount() << std::endl;
 			if (players[index]->GetCount() > 21) {
-						std::cout << players[index]->GetName() << ", has busted!" << std::endl;
-						//ClearHand(players, index);
-						if (players[index]->GetBust() == false) {
-							std::cout << "Sending  API\n";
-							std::string playerBust = "{\"event\": \"playerBust\"}";
-							GameWebSocketController::EventAPI(playerBust);
-							players[index]->SetBust(true);
-						}
+						ClearHand(players, index);
+						int playerBalance = players[index]->GetBalance();
+						int playerWager = players[index]->GetWager();
+						playerBalance = playerBalance - playerWager;
+						players[index]->SetBalance(playerBalance);
+						players[index]->SetBust(true);
 			}
-}
+			if (players[index]->GetBust() == true) {
+						std::cout << players[index]->GetName() << ", has busted!"  << std::endl;	
+						std::cout << "Balance: $" << players[index]->GetBalance() << std::endl;
+						std::cout << "Sending  API\n";
+						std::string playerBust = "{\"event\": \"playerBust\"}";
+						GameWebSocketController::EventAPI(playerBust);
+			}
+			if (dealer.count() > 21) {
+				std::cout << "Dealer Bust!" << std::endl;
+				for (auto &player : players) {
+					if (player->GetBust() == false) {
+						int playerBalance = player->GetBalance();
+						int playerWager = player->GetWager();
+						playerBalance = playerBalance + playerWager;
+						player->SetBalance(playerBalance);
+					}
+				}
+				ResetHands(players, dealer);
+				std::string dealerBust = "{\"event\": \"dealerBust\"}";
+				GameWebSocketController::EventAPI(dealerBust);
+				return;
+			}
+			if (dealer.count() >= 18) {
+				for (auto &player : players) {
+					if (player->GetCount() < dealer.count()) {
+						player->ClearHand();
+						int playerBalance = player->GetBalance();
+						int playerWager = player->GetWager();
+						playerBalance = playerBalance - playerWager;
+						player->SetBalance(playerBalance);
+						std::string playerLoss = "{\"event\": \"playerLoss\"}";
+						GameWebSocketController::EventAPI(playerLoss);
+					}
+				}
+			}
+
+	  }
 

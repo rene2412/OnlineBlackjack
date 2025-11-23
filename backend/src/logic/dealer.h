@@ -14,6 +14,7 @@ class Dealer {
 	   
 	   void push_back(int N) { cards.push_back(N); }
 	   
+	   void ClearHand() { cards.clear(); }
 	   int count() {
 		int sum = 0;
 	   	for (int i = 0; i < cards.size(); i++) {
@@ -21,6 +22,7 @@ class Dealer {
 		}	
 		return sum;
 	   }
+
 	   void ShowDeck() {
 		std::cout << "Dealer Cards: ";
 	   	for (int i = 0; i < cards.size(); i++) {

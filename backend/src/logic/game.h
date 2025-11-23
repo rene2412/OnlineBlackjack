@@ -35,6 +35,7 @@ class Game {
 	
 	void push_back(const Player &p); 
 	void Shuffle();
+	void ResetHands(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer);
 	void Deal(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
 	void PlayerHit(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index);
 	void ClearHand(std::vector<std::shared_ptr<Player>> &players, int index);
