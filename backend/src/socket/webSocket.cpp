@@ -8,6 +8,16 @@ void GameWebSocketController::handleNewConnection(const HttpRequestPtr &req, con
     std::lock_guard<std::mutex> lock(clientsMutex);
     clients.push_back(connection);
     std::cout << "New Web Socket Client estabalished, total: " << clients.size() << std::endl;
+    auto &game = Game::GetGameInstance();
+        for (auto &player : game.GetPlayers()) {
+            int playerCount = player->GetCount();
+        	std::string updateCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(playerCount) + "}";
+			connection->send(updateCount);
+    }  
+    Dealer &dealer = game.GetDealerInstance();
+    int dealerCount = dealer.GetSum()[0];
+    std::string updateDealerCount = "{\"event\": \"updateDealerCount\", \"count\": " + std::to_string(dealerCount) + "}";
+    connection->send(updateDealerCount);
 }
 
 void GameWebSocketController::handleConnectionClosed(const WebSocketConnectionPtr &connection) {

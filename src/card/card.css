@@ -19,8 +19,8 @@
   perspective: 1000px;
   transform-style: preserve-3d;
   transition: transform 0.8s;
+  transform: translate(0, 0%) rotateX(60deg) rotateY(180deg) rotateZ(120deg);
   cursor: pointer;
-  transform: translate(0, 0%) rotateX(60deg) rotateY(180deg) rotateZ(120deg) 
 }
 
 .card .front,
@@ -35,14 +35,26 @@
   height: 100%;
   object-fit: cover; 
 }
+.card .front {
+  transform: rotateY(0deg);
+}
 .card .card-backside { 
    transform: rotateY(180deg); 
- } 
+ }
+  .card-flip-in-place {
+     transform: translate(-250px, -70px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) !important;
+  }
  .card-player-flip {
-  transform: translate(-100px, 105px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  --card-offset: 0px;
+  transform: translate(calc(-100px + var(--card-offset)), 105px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
  }
  .card-dealer-flip {
-  transform: translate(-350px, -90px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  --card-offset: 0px;
+  transform: translate(calc(-280px + var(--card-offset)), -70px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+ }
+ .card-dealer-flip-reverse {
+  --card-offset: 0px;
+  transform: translate(calc(-280px + var(--card-offset)), -70px) rotateX(0deg) rotateY(180deg) rotateZ(0deg);
  }
 .top-left-number {
    top: 5px;

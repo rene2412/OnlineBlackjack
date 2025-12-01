@@ -840,6 +840,7 @@ CMakeFiles/hello_server.dir/logic/game.cpp.o
 CMakeFiles/hello_server.dir/logic/main.cpp.o
  /home/rene/OnlineBlackjack/backend/src/logic/main.cpp
  /home/rene/OnlineBlackjack/backend/src/controller/controller.h
+ /home/rene/OnlineBlackjack/backend/src/socket/webSocket.h
  /home/rene/OnlineBlackjack/backend/src/logic/dealer.h
  /home/rene/OnlineBlackjack/backend/src/logic/deck.h
  /home/rene/OnlineBlackjack/backend/src/logic/game.h
@@ -1183,6 +1184,8 @@ CMakeFiles/hello_server.dir/logic/main.cpp.o
  /usr/local/include/drogon/RequestStream.h
  /usr/local/include/drogon/Session.h
  /usr/local/include/drogon/UploadFile.h
+ /usr/local/include/drogon/WebSocketConnection.h
+ /usr/local/include/drogon/WebSocketController.h
  /usr/local/include/drogon/drogon_callbacks.h
  /usr/local/include/drogon/exports.h
  /usr/local/include/drogon/nosql/RedisClient.h
@@ -1225,6 +1228,10 @@ CMakeFiles/hello_server.dir/logic/main.cpp.o
 
 CMakeFiles/hello_server.dir/socket/webSocket.cpp.o
  /home/rene/OnlineBlackjack/backend/src/socket/webSocket.cpp
+ /home/rene/OnlineBlackjack/backend/src/logic/dealer.h
+ /home/rene/OnlineBlackjack/backend/src/logic/deck.h
+ /home/rene/OnlineBlackjack/backend/src/logic/game.h
+ /home/rene/OnlineBlackjack/backend/src/logic/player.h
  /home/rene/OnlineBlackjack/backend/src/socket/webSocket.h
  /usr/include/alloca.h
  /usr/include/arpa/inet.h
@@ -1553,6 +1560,7 @@ CMakeFiles/hello_server.dir/socket/webSocket.cpp.o
  /usr/local/include/drogon/DrTemplateBase.h
  /usr/local/include/drogon/HttpAppFramework.h
  /usr/local/include/drogon/HttpBinder.h
+ /usr/local/include/drogon/HttpController.h
  /usr/local/include/drogon/HttpFilter.h
  /usr/local/include/drogon/HttpMiddleware.h
  /usr/local/include/drogon/HttpRequest.h

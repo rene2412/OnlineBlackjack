@@ -836,6 +836,7 @@ CMakeFiles/hello_server.dir/logic/game.cpp.o: logic/game.cpp \
 
 CMakeFiles/hello_server.dir/logic/main.cpp.o: logic/main.cpp \
   controller/controller.h \
+  socket/webSocket.h \
   logic/dealer.h \
   logic/deck.h \
   logic/game.h \
@@ -1179,6 +1180,8 @@ CMakeFiles/hello_server.dir/logic/main.cpp.o: logic/main.cpp \
   /usr/local/include/drogon/RequestStream.h \
   /usr/local/include/drogon/Session.h \
   /usr/local/include/drogon/UploadFile.h \
+  /usr/local/include/drogon/WebSocketConnection.h \
+  /usr/local/include/drogon/WebSocketController.h \
   /usr/local/include/drogon/drogon_callbacks.h \
   /usr/local/include/drogon/exports.h \
   /usr/local/include/drogon/nosql/RedisClient.h \
@@ -1220,6 +1223,10 @@ CMakeFiles/hello_server.dir/logic/main.cpp.o: logic/main.cpp \
   /usr/local/include/trantor/utils/Utilities.h
 
 CMakeFiles/hello_server.dir/socket/webSocket.cpp.o: socket/webSocket.cpp \
+  logic/dealer.h \
+  logic/deck.h \
+  logic/game.h \
+  logic/player.h \
   socket/webSocket.h \
   /usr/include/alloca.h \
   /usr/include/arpa/inet.h \
@@ -1548,6 +1555,7 @@ CMakeFiles/hello_server.dir/socket/webSocket.cpp.o: socket/webSocket.cpp \
   /usr/local/include/drogon/DrTemplateBase.h \
   /usr/local/include/drogon/HttpAppFramework.h \
   /usr/local/include/drogon/HttpBinder.h \
+  /usr/local/include/drogon/HttpController.h \
   /usr/local/include/drogon/HttpFilter.h \
   /usr/local/include/drogon/HttpMiddleware.h \
   /usr/local/include/drogon/HttpRequest.h \

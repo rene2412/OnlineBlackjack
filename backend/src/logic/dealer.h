@@ -1,5 +1,6 @@
 #pragma once 
 #include <deque>
+#include <vector>
 #include <iostream>
 class Dealer {
       private:
@@ -15,12 +16,27 @@ class Dealer {
 	   void push_back(int N) { cards.push_back(N); }
 	   
 	   void ClearHand() { cards.clear(); }
+	   
+	   int firstCard() {
+			return cards[0];
+	   }
+
 	   int count() {
 		int sum = 0;
 	   	for (int i = 0; i < cards.size(); i++) {
 			sum += cards[i];	
 		}	
 		return sum;
+	   }
+
+	   std::deque<int> GetSum() {
+			int sum = 0;
+			std::deque<int> deck;
+			for (int i = 0; i < cards.size(); i++) {
+				sum += cards[i];
+				deck.push_back(sum);
+			}
+			return deck;
 	   }
 
 	   void ShowDeck() {

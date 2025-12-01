@@ -40,7 +40,7 @@ class Game {
 	void PlayerHit(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index);
 	void ClearHand(std::vector<std::shared_ptr<Player>> &players, int index);
 	void Push(std::vector<std::shared_ptr<Player>> &players, int index);
-	void Insurance(std::vector<std::shared_ptr<Player>> &players, int index);
+	void Insurance(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer);
 	void Dealer_BlackJack(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
 	void Player_BlackJack(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
 	int DealerStand(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);

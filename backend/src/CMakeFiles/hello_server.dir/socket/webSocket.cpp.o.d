@@ -302,4 +302,9 @@ CMakeFiles/hello_server.dir/socket/webSocket.cpp.o: \
  /usr/local/include/drogon/nosql/RedisSubscriber.h \
  /usr/local/include/trantor/net/Resolver.h \
  /usr/local/include/drogon/WebSocketConnection.h \
- /usr/include/jsoncpp/json/value.h
+ /usr/include/jsoncpp/json/value.h \
+ /home/rene/OnlineBlackjack/backend/src/socket/../logic/game.h \
+ /home/rene/OnlineBlackjack/backend/src/socket/../logic/player.h \
+ /home/rene/OnlineBlackjack/backend/src/socket/../logic/dealer.h \
+ /home/rene/OnlineBlackjack/backend/src/socket/../logic/deck.h \
+ /usr/local/include/drogon/HttpController.h

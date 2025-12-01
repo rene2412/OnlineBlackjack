@@ -5,6 +5,7 @@
 #include "deck.h"
 #include "game.h"
 #include "../controller/controller.h"
+#include "../socket/webSocket.h"
 using namespace std;
 
 Game& game = Game::GetGameInstance();
@@ -68,7 +69,6 @@ int main(int argc, char* argv[]) {
 		game.Deal(game.GetPlayers(), dealer, card_deck.GetDeck());
 		PrintDealerHand();
 		PrintPlayerHands();
-		game.Play(game.GetPlayers(), dealer, card_deck.GetDeck(), 0);
 		}
 		else {
                 cout << "Error: No JSON received" << endl;

@@ -12,7 +12,7 @@ const suits = [
 ]
 const cards = [];
 
-export default function Card({ cardRef}) {
+export default function Card({ cardRef, gameStarted, lastDealerCard}) {
     useEffect(() => {
       cardRef.current = [];
     }, []);
@@ -335,7 +335,6 @@ export default function Card({ cardRef}) {
                  );
              }
          }
-         console.log("Original Card Ref Size: ", cardRef.current);
     }
 
     function Shuffle(deck) {
@@ -365,24 +364,35 @@ export default function Card({ cardRef}) {
 const random_deck = React.useMemo(() => Shuffle(deck), []);
 
 React.useEffect(() => {
-      const cards = document.querySelectorAll(".card");
-      console.log("📍 Cards found in DOM:", cards.length);
+  console.log("Has Game Started: ", gameStarted);
+  if (!gameStarted) return;  
+  const cards = document.querySelectorAll(".card");
         
         // Populate the ref
         cardRef.current = Array.from(cards);
-        console.log("📍 CardRef populated:", cardRef.current.length);
       const baseDelay = 750;
       cards.forEach((card, i) =>  {
         if (i < 4) {          
           if (i % 2 !== 0) {
+            const offset = (i - 1) * 30;
+            card.style.setProperty('--card-offset', `${offset}px`);
             setTimeout(() => card.classList.add("card-player-flip"), baseDelay + i * 750);
           }
           if (i % 2 === 0) {
-            setTimeout(() => card.classList.add("card-dealer-flip"), baseDelay + i * 750);
+              const offset = (i - 1) * 30;
+              card.style.setProperty('--card-offset', `${offset}px`);
+              console.log("Dealer Offset", offset);
+             if (i == 0) {
+              setTimeout(() => card.classList.add("card-dealer-flip"), baseDelay + i * 750);
+            }
+             else {
+                  setTimeout(() => card.classList.add("card-dealer-flip-reverse"), baseDelay + i * 750);
+                  lastDealerCard.current = i; 
+                }
             }
          }
       });
-  }, [cardRef]);
+  }, [cardRef, gameStarted]);
     
   const onlyValues = random_deck.map(d => `${d.key}`);
   React.useEffect(() => { 
@@ -390,8 +400,6 @@ React.useEffect(() => {
     sendDeckToBackend(onlyValues);
   }, []);
   
-    console.log("Random deck:", random_deck);
-    console.log("Values: ", onlyValues);
         return ( 
                 <div className="deck">
                   {random_deck}

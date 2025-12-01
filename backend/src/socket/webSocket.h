@@ -3,6 +3,8 @@
 #include <drogon/WebSocketConnection.h>
 #include <vector>
 #include <mutex>
+#include "../logic/game.h"
+#include "../logic/dealer.h"
 #include <string>
 using namespace drogon;
 
