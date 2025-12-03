@@ -215,7 +215,7 @@ void Game::Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
 					GameWebSocketController::EventAPI(animation);
 					}
 				}
-				if (player->GetDecision() == 0 and (player->GetCount() < 21 and dealer.count() < 21) and player->GetCount() > dealer.count()) {
+				if (player->GetDecision() == 0 and (player->GetCount() <= 21 and dealer.count() < 21) and player->GetCount() > dealer.count()) {
 					std::cout << player->GetName() <<  " wins!" << std::endl;
 					std::string playerName = "{\"event\": \"playerWin\"}";
 					GameWebSocketController::EventAPI(playerName);

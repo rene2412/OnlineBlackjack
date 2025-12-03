@@ -11,9 +11,11 @@ void GameWebSocketController::handleNewConnection(const HttpRequestPtr &req, con
     auto &game = Game::GetGameInstance();
         for (auto &player : game.GetPlayers()) {
             int playerCount = player->GetCount();
+            std::cout << player->GetName() << ": " << playerCount << std::endl;
         	std::string updateCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(playerCount) + "}";
 			connection->send(updateCount);
     }  
+    std::cout << "Sending dealer api\n";
     Dealer &dealer = game.GetDealerInstance();
     int dealerCount = dealer.GetSum()[0];
     std::string updateDealerCount = "{\"event\": \"updateDealerCount\", \"count\": " + std::to_string(dealerCount) + "}";

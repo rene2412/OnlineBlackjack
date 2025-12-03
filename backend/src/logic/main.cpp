@@ -67,6 +67,11 @@ int main(int argc, char* argv[]) {
 		}
 	    reverse(card_deck.GetDeck().begin(), card_deck.GetDeck().end());
 		game.Deal(game.GetPlayers(), dealer, card_deck.GetDeck());
+		/*
+		int playerCount = game.GetPlayer()[0]->GetCount();
+        string updateCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(playerCount) + "}";
+		GameWebSocket::EventAPI(updateCount);
+		*/
 		PrintDealerHand();
 		PrintPlayerHands();
 		}
