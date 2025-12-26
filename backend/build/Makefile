@@ -129,29 +129,125 @@ hello_server/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/build
 .PHONY : hello_server/fast
 
-src/main.o: src/main.cpp.o
-.PHONY : src/main.o
+src/controller/controller.o: src/controller/controller.cpp.o
+.PHONY : src/controller/controller.o
 
 # target to build an object file
-src/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/main.cpp.o
-.PHONY : src/main.cpp.o
+src/controller/controller.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/controller/controller.cpp.o
+.PHONY : src/controller/controller.cpp.o
 
-src/main.i: src/main.cpp.i
-.PHONY : src/main.i
+src/controller/controller.i: src/controller/controller.cpp.i
+.PHONY : src/controller/controller.i
 
 # target to preprocess a source file
-src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/main.cpp.i
-.PHONY : src/main.cpp.i
+src/controller/controller.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/controller/controller.cpp.i
+.PHONY : src/controller/controller.cpp.i
 
-src/main.s: src/main.cpp.s
-.PHONY : src/main.s
+src/controller/controller.s: src/controller/controller.cpp.s
+.PHONY : src/controller/controller.s
 
 # target to generate assembly for a file
-src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/main.cpp.s
-.PHONY : src/main.cpp.s
+src/controller/controller.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/controller/controller.cpp.s
+.PHONY : src/controller/controller.cpp.s
+
+src/logic/deck.o: src/logic/deck.cpp.o
+.PHONY : src/logic/deck.o
+
+# target to build an object file
+src/logic/deck.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/logic/deck.cpp.o
+.PHONY : src/logic/deck.cpp.o
+
+src/logic/deck.i: src/logic/deck.cpp.i
+.PHONY : src/logic/deck.i
+
+# target to preprocess a source file
+src/logic/deck.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/logic/deck.cpp.i
+.PHONY : src/logic/deck.cpp.i
+
+src/logic/deck.s: src/logic/deck.cpp.s
+.PHONY : src/logic/deck.s
+
+# target to generate assembly for a file
+src/logic/deck.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/logic/deck.cpp.s
+.PHONY : src/logic/deck.cpp.s
+
+src/logic/game.o: src/logic/game.cpp.o
+.PHONY : src/logic/game.o
+
+# target to build an object file
+src/logic/game.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/logic/game.cpp.o
+.PHONY : src/logic/game.cpp.o
+
+src/logic/game.i: src/logic/game.cpp.i
+.PHONY : src/logic/game.i
+
+# target to preprocess a source file
+src/logic/game.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/logic/game.cpp.i
+.PHONY : src/logic/game.cpp.i
+
+src/logic/game.s: src/logic/game.cpp.s
+.PHONY : src/logic/game.s
+
+# target to generate assembly for a file
+src/logic/game.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/logic/game.cpp.s
+.PHONY : src/logic/game.cpp.s
+
+src/logic/main.o: src/logic/main.cpp.o
+.PHONY : src/logic/main.o
+
+# target to build an object file
+src/logic/main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/logic/main.cpp.o
+.PHONY : src/logic/main.cpp.o
+
+src/logic/main.i: src/logic/main.cpp.i
+.PHONY : src/logic/main.i
+
+# target to preprocess a source file
+src/logic/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/logic/main.cpp.i
+.PHONY : src/logic/main.cpp.i
+
+src/logic/main.s: src/logic/main.cpp.s
+.PHONY : src/logic/main.s
+
+# target to generate assembly for a file
+src/logic/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/logic/main.cpp.s
+.PHONY : src/logic/main.cpp.s
+
+src/socket/webSocket.o: src/socket/webSocket.cpp.o
+.PHONY : src/socket/webSocket.o
+
+# target to build an object file
+src/socket/webSocket.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o
+.PHONY : src/socket/webSocket.cpp.o
+
+src/socket/webSocket.i: src/socket/webSocket.cpp.i
+.PHONY : src/socket/webSocket.i
+
+# target to preprocess a source file
+src/socket/webSocket.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.i
+.PHONY : src/socket/webSocket.cpp.i
+
+src/socket/webSocket.s: src/socket/webSocket.cpp.s
+.PHONY : src/socket/webSocket.s
+
+# target to generate assembly for a file
+src/socket/webSocket.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_server.dir/build.make CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.s
+.PHONY : src/socket/webSocket.cpp.s
 
 # Help Target
 help:
@@ -162,9 +258,21 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... hello_server"
-	@echo "... src/main.o"
-	@echo "... src/main.i"
-	@echo "... src/main.s"
+	@echo "... src/controller/controller.o"
+	@echo "... src/controller/controller.i"
+	@echo "... src/controller/controller.s"
+	@echo "... src/logic/deck.o"
+	@echo "... src/logic/deck.i"
+	@echo "... src/logic/deck.s"
+	@echo "... src/logic/game.o"
+	@echo "... src/logic/game.i"
+	@echo "... src/logic/game.s"
+	@echo "... src/logic/main.o"
+	@echo "... src/logic/main.i"
+	@echo "... src/logic/main.s"
+	@echo "... src/socket/webSocket.o"
+	@echo "... src/socket/webSocket.i"
+	@echo "... src/socket/webSocket.s"
 .PHONY : help
 
 

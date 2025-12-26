@@ -33,6 +33,9 @@ class Game {
 		return deck;
 	}
 	
+	int DealerStand(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
+	int DetermineAceHandValue(std::vector<std::shared_ptr<Player>> &players, int index);
+	int DetermineDealerAceHandValue(Dealer &dealer);
 	void push_back(const Player &p); 
 	void Shuffle();
 	void ResetHands(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer);
@@ -43,7 +46,6 @@ class Game {
 	void Insurance(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer);
 	void Dealer_BlackJack(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
 	void Player_BlackJack(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
-	int DealerStand(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
 	void PlayerDecisions(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, Dealer &dealer, std::string action);
 	void Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck, int index);
 };

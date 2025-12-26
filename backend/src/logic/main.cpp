@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 				continue;
 			}
 	    	if (card[0] == 'A') { 
-				card_deck.push_back(1);
+				card_deck.push_back(11);
 				continue;
 			}
 		    else if (card[0] == 'K' or card[0] == 'J' or card[0] == 'Q') { 

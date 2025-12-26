@@ -8,11 +8,14 @@ class Dealer {
 	   int balance = 0;
 	   int wins = 0;
 	   int losses = 0; 
-      	   	
+       bool ace = false;
       public:
 	   Dealer()  {};
 	   const std::deque<int>& GetDealerCards() const { return cards; }
 	   
+	   bool GetAce() const { return ace; }
+	   void SetAce(bool newAce) { ace = newAce; }
+
 	   void push_back(int N) { cards.push_back(N); }
 	   
 	   void ClearHand() { cards.clear(); }
@@ -38,7 +41,15 @@ class Dealer {
 			}
 			return deck;
 	   }
-
+	   bool DoubleAce() {
+		if (cards[0] == 11 and cards[1] == 11) {
+			return true;
+		}
+		else return false;
+	   }
+	   int& cardAt(size_t index) {
+		return cards.at(index);
+	   }
 	   void ShowDeck() {
 		std::cout << "Dealer Cards: ";
 	   	for (int i = 0; i < cards.size(); i++) {

@@ -69,28 +69,92 @@ include CMakeFiles/hello_server.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/hello_server.dir/flags.make
 
-CMakeFiles/hello_server.dir/src/main.cpp.o: CMakeFiles/hello_server.dir/flags.make
-CMakeFiles/hello_server.dir/src/main.cpp.o: /home/rene/OnlineBlackjack/backend/src/main.cpp
-CMakeFiles/hello_server.dir/src/main.cpp.o: CMakeFiles/hello_server.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rene/OnlineBlackjack/backend/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/hello_server.dir/src/main.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hello_server.dir/src/main.cpp.o -MF CMakeFiles/hello_server.dir/src/main.cpp.o.d -o CMakeFiles/hello_server.dir/src/main.cpp.o -c /home/rene/OnlineBlackjack/backend/src/main.cpp
+CMakeFiles/hello_server.dir/src/logic/main.cpp.o: CMakeFiles/hello_server.dir/flags.make
+CMakeFiles/hello_server.dir/src/logic/main.cpp.o: /home/rene/OnlineBlackjack/backend/src/logic/main.cpp
+CMakeFiles/hello_server.dir/src/logic/main.cpp.o: CMakeFiles/hello_server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rene/OnlineBlackjack/backend/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/hello_server.dir/src/logic/main.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hello_server.dir/src/logic/main.cpp.o -MF CMakeFiles/hello_server.dir/src/logic/main.cpp.o.d -o CMakeFiles/hello_server.dir/src/logic/main.cpp.o -c /home/rene/OnlineBlackjack/backend/src/logic/main.cpp
 
-CMakeFiles/hello_server.dir/src/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/hello_server.dir/src/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rene/OnlineBlackjack/backend/src/main.cpp > CMakeFiles/hello_server.dir/src/main.cpp.i
+CMakeFiles/hello_server.dir/src/logic/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/hello_server.dir/src/logic/main.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rene/OnlineBlackjack/backend/src/logic/main.cpp > CMakeFiles/hello_server.dir/src/logic/main.cpp.i
 
-CMakeFiles/hello_server.dir/src/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/hello_server.dir/src/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rene/OnlineBlackjack/backend/src/main.cpp -o CMakeFiles/hello_server.dir/src/main.cpp.s
+CMakeFiles/hello_server.dir/src/logic/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/hello_server.dir/src/logic/main.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rene/OnlineBlackjack/backend/src/logic/main.cpp -o CMakeFiles/hello_server.dir/src/logic/main.cpp.s
+
+CMakeFiles/hello_server.dir/src/logic/deck.cpp.o: CMakeFiles/hello_server.dir/flags.make
+CMakeFiles/hello_server.dir/src/logic/deck.cpp.o: /home/rene/OnlineBlackjack/backend/src/logic/deck.cpp
+CMakeFiles/hello_server.dir/src/logic/deck.cpp.o: CMakeFiles/hello_server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rene/OnlineBlackjack/backend/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/hello_server.dir/src/logic/deck.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hello_server.dir/src/logic/deck.cpp.o -MF CMakeFiles/hello_server.dir/src/logic/deck.cpp.o.d -o CMakeFiles/hello_server.dir/src/logic/deck.cpp.o -c /home/rene/OnlineBlackjack/backend/src/logic/deck.cpp
+
+CMakeFiles/hello_server.dir/src/logic/deck.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/hello_server.dir/src/logic/deck.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rene/OnlineBlackjack/backend/src/logic/deck.cpp > CMakeFiles/hello_server.dir/src/logic/deck.cpp.i
+
+CMakeFiles/hello_server.dir/src/logic/deck.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/hello_server.dir/src/logic/deck.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rene/OnlineBlackjack/backend/src/logic/deck.cpp -o CMakeFiles/hello_server.dir/src/logic/deck.cpp.s
+
+CMakeFiles/hello_server.dir/src/logic/game.cpp.o: CMakeFiles/hello_server.dir/flags.make
+CMakeFiles/hello_server.dir/src/logic/game.cpp.o: /home/rene/OnlineBlackjack/backend/src/logic/game.cpp
+CMakeFiles/hello_server.dir/src/logic/game.cpp.o: CMakeFiles/hello_server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rene/OnlineBlackjack/backend/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/hello_server.dir/src/logic/game.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hello_server.dir/src/logic/game.cpp.o -MF CMakeFiles/hello_server.dir/src/logic/game.cpp.o.d -o CMakeFiles/hello_server.dir/src/logic/game.cpp.o -c /home/rene/OnlineBlackjack/backend/src/logic/game.cpp
+
+CMakeFiles/hello_server.dir/src/logic/game.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/hello_server.dir/src/logic/game.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rene/OnlineBlackjack/backend/src/logic/game.cpp > CMakeFiles/hello_server.dir/src/logic/game.cpp.i
+
+CMakeFiles/hello_server.dir/src/logic/game.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/hello_server.dir/src/logic/game.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rene/OnlineBlackjack/backend/src/logic/game.cpp -o CMakeFiles/hello_server.dir/src/logic/game.cpp.s
+
+CMakeFiles/hello_server.dir/src/controller/controller.cpp.o: CMakeFiles/hello_server.dir/flags.make
+CMakeFiles/hello_server.dir/src/controller/controller.cpp.o: /home/rene/OnlineBlackjack/backend/src/controller/controller.cpp
+CMakeFiles/hello_server.dir/src/controller/controller.cpp.o: CMakeFiles/hello_server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rene/OnlineBlackjack/backend/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/hello_server.dir/src/controller/controller.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hello_server.dir/src/controller/controller.cpp.o -MF CMakeFiles/hello_server.dir/src/controller/controller.cpp.o.d -o CMakeFiles/hello_server.dir/src/controller/controller.cpp.o -c /home/rene/OnlineBlackjack/backend/src/controller/controller.cpp
+
+CMakeFiles/hello_server.dir/src/controller/controller.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/hello_server.dir/src/controller/controller.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rene/OnlineBlackjack/backend/src/controller/controller.cpp > CMakeFiles/hello_server.dir/src/controller/controller.cpp.i
+
+CMakeFiles/hello_server.dir/src/controller/controller.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/hello_server.dir/src/controller/controller.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rene/OnlineBlackjack/backend/src/controller/controller.cpp -o CMakeFiles/hello_server.dir/src/controller/controller.cpp.s
+
+CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: CMakeFiles/hello_server.dir/flags.make
+CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: /home/rene/OnlineBlackjack/backend/src/socket/webSocket.cpp
+CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: CMakeFiles/hello_server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rene/OnlineBlackjack/backend/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o -MF CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o.d -o CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o -c /home/rene/OnlineBlackjack/backend/src/socket/webSocket.cpp
+
+CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rene/OnlineBlackjack/backend/src/socket/webSocket.cpp > CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.i
+
+CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rene/OnlineBlackjack/backend/src/socket/webSocket.cpp -o CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.s
 
 # Object files for target hello_server
 hello_server_OBJECTS = \
-"CMakeFiles/hello_server.dir/src/main.cpp.o"
+"CMakeFiles/hello_server.dir/src/logic/main.cpp.o" \
+"CMakeFiles/hello_server.dir/src/logic/deck.cpp.o" \
+"CMakeFiles/hello_server.dir/src/logic/game.cpp.o" \
+"CMakeFiles/hello_server.dir/src/controller/controller.cpp.o" \
+"CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o"
 
 # External object files for target hello_server
 hello_server_EXTERNAL_OBJECTS =
 
-hello_server: CMakeFiles/hello_server.dir/src/main.cpp.o
+hello_server: CMakeFiles/hello_server.dir/src/logic/main.cpp.o
+hello_server: CMakeFiles/hello_server.dir/src/logic/deck.cpp.o
+hello_server: CMakeFiles/hello_server.dir/src/logic/game.cpp.o
+hello_server: CMakeFiles/hello_server.dir/src/controller/controller.cpp.o
+hello_server: CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o
 hello_server: CMakeFiles/hello_server.dir/build.make
 hello_server: /usr/local/lib/libdrogon.a
 hello_server: /usr/local/lib/libtrantor.a
@@ -98,7 +162,7 @@ hello_server: /usr/lib/x86_64-linux-gnu/libjsoncpp.so
 hello_server: /usr/lib/x86_64-linux-gnu/libuuid.so
 hello_server: /usr/lib/x86_64-linux-gnu/libz.so
 hello_server: CMakeFiles/hello_server.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/rene/OnlineBlackjack/backend/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable hello_server"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/rene/OnlineBlackjack/backend/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable hello_server"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/hello_server.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

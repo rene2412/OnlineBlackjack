@@ -1,6 +1,14 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/hello_server.dir/src/main.cpp.o"
-  "CMakeFiles/hello_server.dir/src/main.cpp.o.d"
+  "CMakeFiles/hello_server.dir/src/controller/controller.cpp.o"
+  "CMakeFiles/hello_server.dir/src/controller/controller.cpp.o.d"
+  "CMakeFiles/hello_server.dir/src/logic/deck.cpp.o"
+  "CMakeFiles/hello_server.dir/src/logic/deck.cpp.o.d"
+  "CMakeFiles/hello_server.dir/src/logic/game.cpp.o"
+  "CMakeFiles/hello_server.dir/src/logic/game.cpp.o.d"
+  "CMakeFiles/hello_server.dir/src/logic/main.cpp.o"
+  "CMakeFiles/hello_server.dir/src/logic/main.cpp.o.d"
+  "CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o"
+  "CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o.d"
   "hello_server"
   "hello_server.pdb"
 )

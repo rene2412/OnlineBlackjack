@@ -17,9 +17,11 @@ export default function Table() {
         };
         }, []);
 
-  return (
-    <div className="table_styles">
-      <canvas ref={canvasRef}></canvas>
-    </div>
-  );
+return (
+  <div className="table_styles">
+    <canvas ref={canvasRef} className="table_canvas"></canvas>
+    <div className="table_frame"></div>
+  </div>
+);
+
 }

@@ -16,6 +16,7 @@ class Player {
 	   int wins; 
 	   int losses;
 	   int wager;
+	   bool ace;
 	   bool bust;
 	   bool decision; //0 for stand, 1 for hit
 	   //TO DO LATER: networking connections here	   
@@ -26,6 +27,7 @@ class Player {
 		   	player_count ++;
 		    wager = 0;
 			decision = 1;
+			ace = false;
 		}
 	   
 	   const std::deque<int> &GetDeck() const { return cards; }
@@ -34,15 +36,26 @@ class Player {
 	   int GetBalance() const { return balance; }
 	   bool GetBust() const { return bust; }
 	   bool GetDecision() const { return decision; }
+	   bool GetAce() const { return ace; }
 
 	   void SetBalance(int newBalance) { balance = newBalance; }
 	   void SetWager(int newWager) { wager = newWager; }
 	   void SetBust(bool newBust) { bust = newBust; }
 	   void SetDecision(bool newDecision) { decision = newDecision; }
-
+	   void SetAce(bool newState) { ace = newState; }
 	   void push_back(int N) { cards.push_back(N); }
 	   void ClearHand() { cards.clear(); }   
 	   
+	   int& cardAt(size_t index) {
+			return cards.at(index);
+	   }
+
+	   bool DoubleAce() {
+		if (cards[0] == 11 and cards[1] == 11) {
+			return true;
+		}
+		else return false;
+	   }
 	   int GetCount() {
 	   	int sum = 0;
 		for (int i = 0; i < cards.size(); i++) { 
