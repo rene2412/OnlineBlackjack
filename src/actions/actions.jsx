@@ -41,6 +41,10 @@ export default function StartGame({onGameStart}) {
             alert("Wager can only be max 1000");
             return;
         }
+        if (wager < 25) {
+            alert("Wager Must Be At Least 25");
+            return;
+        }
          try{
         const response = await fetch('/api/wager', {
          method: 'POST',
@@ -56,7 +60,7 @@ export default function StartGame({onGameStart}) {
             console.log("Wager Submited");
         }   
          if (onGameStart) {
-            onGameStart(); 
+            onGameStart(wager); 
         }     
     }
         catch(error) { 

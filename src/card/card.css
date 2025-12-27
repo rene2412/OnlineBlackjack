@@ -3,7 +3,7 @@
   flex-wrap: wrap;
   position: fixed;
   top: 28vh;
-  right: 17vw;
+  right: 27vw;
   gap: 6px;
 }
 
@@ -42,19 +42,19 @@
    transform: rotateY(180deg); 
  }
   .card-flip-in-place {
-     transform: translate(-250px, -70px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) !important;
+     transform: translate(-260px, 65px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) !important;
   }
  .card-player-flip {
   --card-offset: 0px;
-  transform: translate(calc(-100px + var(--card-offset)), 105px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  transform: translate(calc(-60px + var(--card-offset)), 95px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
  }
  .card-dealer-flip {
   --card-offset: 0px;
-  transform: translate(calc(-280px + var(--card-offset)), -70px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  transform: translate(calc(-290px + var(--card-offset)), 65px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
  }
  .card-dealer-flip-reverse {
   --card-offset: 0px;
-  transform: translate(calc(-280px + var(--card-offset)), -70px) rotateX(0deg) rotateY(180deg) rotateZ(0deg);
+  transform: translate(calc(-290px + var(--card-offset)), 65px) rotateX(0deg) rotateY(180deg) rotateZ(0deg);
  }
 .top-left-number {
    top: 5px;

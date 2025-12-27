@@ -1,0 +1,75 @@
+.chip_wrapper {
+  position: absolute;
+  z-index: 999;
+  perspective: 1000px;
+  transition: transform 1.0s ease-out;
+}
+
+.chip {
+  width: 40px;
+  height: 40px;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+@keyframes chipSpin {
+  0% {
+    transform: rotateY(360deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+.chip-face {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  backface-visibility: hidden;
+}
+
+.chip-front {
+  transform: translateZ(0.5px);
+  backface-visibility: hidden;
+}
+
+.chip-back {
+  transform: translateZ(-0.5px) rotateY(180deg);
+  backface-visibility: hidden;
+}
+
+.chip-value {
+  color: #000000;
+  font-weight: bold;
+  font-size: 18px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+  pointer-events: none;  
+}
+
+.chip-blue {
+    background-image: url("/blueChip_V1.png");
+}
+
+.chip-red {
+  background-image: url("/redChip.png");
+}
+
+.chip-green {
+  background-image: url("/greenChip.png");
+}
+
+.chip-white {
+  background-image: url("/whiteChip.png");
+}
+
+.chip-black {
+  background-image: url("/blackChip.png");
+}

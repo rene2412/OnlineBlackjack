@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import ReactDOM from "react-dom/client";
-import { useRef, useState } from "react";
 import Table from "./table/table.jsx"; 
 import Card from "./card/card.jsx";
 import StartGame from "./actions/actions.jsx";
@@ -18,21 +17,37 @@ function GameRoot() {
   const [showInsurance, setShowInsurance] = useState(false);
   const [playerCount, setPlayerCount] = useState(0);
   const [dealerCount, setDealerCount] = useState(0);
- console.log("GameStart: ", gameStart); 
+
+  const [wager, setWager] = useState(null);
+
+  console.log("GameStart: ", gameStart); 
+
   return (
     <>
-      <Table/>
+      <Table initialWager={wager} /> 
       {!gameStart ? (
-        <StartGame onGameStart={() => setGameStart(true)}/>
+        <StartGame 
+          onGameStart={(submittedWager) => {
+            setGameStart(true);
+            setWager(Number(submittedWager));
+          }} 
+        />
       ) : ( 
-      <>
-        <Card cardRef={cardRef} gameStarted={gameStart} lastDealerCard={lastDealerCard}/>
-         <UpdateGame cardRef={cardRef} nextCardIndex={nextCardIndex} lastDealerCard={lastDealerCard} setShowInsurance={setShowInsurance} setPlayerCount={setPlayerCount} setDealerCount={setDealerCount}/>
-        <HitOrStand/>
-        {showInsurance && <Insurance/>}
-        <Count count={playerCount}/>
-        <DealerCount count={dealerCount}/>
-       </>
+        <>
+          <Card cardRef={cardRef} gameStarted={gameStart} lastDealerCard={lastDealerCard}/>
+          <UpdateGame 
+            cardRef={cardRef} 
+            nextCardIndex={nextCardIndex} 
+            lastDealerCard={lastDealerCard} 
+            setShowInsurance={setShowInsurance} 
+            setPlayerCount={setPlayerCount} 
+            setDealerCount={setDealerCount}
+          />
+          <HitOrStand/>
+          {showInsurance && <Insurance/>}
+          <Count count={playerCount}/>
+          <DealerCount count={dealerCount}/>
+        </>
       )}
     </>
   );
@@ -42,4 +57,4 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <GameRoot/>
   </React.StrictMode>
-); 
+);

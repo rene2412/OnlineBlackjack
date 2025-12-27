@@ -49,23 +49,23 @@
 
 .wager label {
     color: #ffffff;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
     font-size: 20px;
-    font-weight: bold;
     letter-spacing: 2px;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 .wager input {
     padding: 14px 20px;
-    border: 3px solid #ff0000;
+    border: 3px solid #fffb00;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.08);
-    color: #ff0000;
+    color: #fffb00;
     font-size: 18px;
     height: 20px;
     width: 80px;
     transition: all 0.3s ease;
-    box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+    box-shadow: 0 0 15px rgba(250, 204, 0, 0.795);
     font-weight: bold;
     letter-spacing: 1px;
 }
@@ -73,12 +73,12 @@
 .wager input:focus {
     outline: none;
     background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 0 30px rgba(255, 0, 0, 0.8), inset 0 0 10px rgba(255, 0, 0, 0.2);
-    border-color: #ff0000;
+    box-shadow: 0 0 30px rgba(255, 251, 0, 0.8), inset 0 0 10px rgba(255, 208, 0, 0.897);
+    border-color: #fffb00;
 }
 
 .wager input::placeholder {
-    color: rgba(255, 0, 0, 0.4);
+    color: rgb(255, 255, 255);
 }
 
 .wager button {

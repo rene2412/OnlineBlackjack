@@ -9,27 +9,48 @@
   background-position: center;
   background-repeat: no-repeat;       
 }
+.table_stack {
+  position: relative;   
+  width: 970px;
+  height: 660px;
+  perspective: 800px;
+}
 
 .table_canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
   width: 805px;
   height: auto;
-  max-width: 90vw;
-  max-height: 90vh;
-  position: relative; 
   z-index: 1;
 }
 
 .table_frame {
   position: absolute; 
-  width: 970px;
-  height: 660px;
+  inset: 0;
   background-image: url("/goldenFrame.png");
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   z-index: 5;
-    transform: translateX(-11px) translateY(-6px);
+  transform: translateX(-11px) translateY(-6px);
+}
+
+.chips_tray {
+  position: absolute;
+  top: 90px;              
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 280px;
+  height: 90px;
+
+  background-image: url("/tray.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  z-index: 10;            
 }
