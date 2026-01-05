@@ -20,6 +20,14 @@ void GameWebSocketController::handleNewConnection(const HttpRequestPtr &req, con
     int dealerCount = dealer.GetSum()[0];
     std::string updateDealerCount = "{\"event\": \"updateDealerCount\", \"count\": " + std::to_string(dealerCount) + "}";
     connection->send(updateDealerCount);
+    //split
+    for (int i = 0; i < game.GetPlayers().size(); i++) {
+    	if (game.IsSplitValid(game.GetPlayers(), i)) {
+		    std::cout << "TIME TO SPLIT\n";
+		    std::string split = "{\"event\": \"playerSplitChoice\"}";
+		    connection->send(split);
+	    }   
+    }
 }
 
 void GameWebSocketController::handleConnectionClosed(const WebSocketConnectionPtr &connection) {

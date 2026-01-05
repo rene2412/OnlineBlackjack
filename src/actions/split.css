@@ -1,0 +1,130 @@
+/* ================================
+   SPLIT UI CONTAINER
+================================ */
+.split-ui {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  z-index: 20;
+
+  animation: splitEnter 0.35s ease-out forwards;
+}
+
+/* Entrance animation */
+@keyframes splitEnter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Exit animation (optional) */
+.split-ui.exit {
+  animation: splitExit 0.25s ease-in forwards;
+}
+
+@keyframes splitExit {
+  to {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+}
+
+/* ================================
+   SPLIT LABEL
+================================ */
+.split-label {
+  color: #f1c40f;
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 1px;
+
+  animation: labelGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes labelGlow {
+  0%, 100% {
+    text-shadow: 0 0 6px rgba(241, 196, 15, 0.35);
+  }
+  50% {
+    text-shadow: 0 0 14px rgba(241, 196, 15, 0.85);
+  }
+}
+
+/* ================================
+   BUTTON CONTAINER
+================================ */
+.split-buttons {
+  display: flex;
+  gap: 20px;
+}
+
+/* ================================
+   BASE BUTTON STYLE
+================================ */
+.split-btn {
+  height: 60px;
+  width: 120px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+}
+
+/* Hover + press feel */
+.split-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  filter: brightness(1.05);
+}
+
+.split-btn:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
+}
+
+/* ================================
+   YES BUTTON (TEMPTING 😈)
+================================ */
+.split-btn.yes {
+  background: linear-gradient(145deg, #f1c40f, #d4ac0d);
+  color: #111;
+  box-shadow: 0 0 0 rgba(241, 196, 15, 0.6);
+}
+
+.split-btn.yes:hover {
+  box-shadow: 0 0 22px rgba(241, 196, 15, 0.85);
+}
+
+/* ================================
+   NO BUTTON (MUTED)
+================================ */
+.split-btn.no {
+  background: linear-gradient(145deg, #666, #444);
+  color: #eee;
+}
+
+/* ================================
+   DISABLED STATE
+================================ */
+.split-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: none;
+  box-shadow: none;
+}

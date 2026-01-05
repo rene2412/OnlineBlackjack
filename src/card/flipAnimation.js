@@ -1,7 +1,7 @@
 import React from "react";
 
 let dealerIndex = 2;
-export function flipAnimation(type, cardRef, cardIndex) {
+export function flipAnimation(type, cardRef, cardIndex, hand = 0) {
     console.log("Flip Animation Called");
     const cards = cardRef.current;
     if (cards === null || !cards[cardIndex]) return;
@@ -24,4 +24,17 @@ export function flipAnimation(type, cardRef, cardIndex) {
             nextCard.classList.add("card-dealer-flip");
             dealerIndex ++;
         }
+    if (type === "splitPlayer") {
+        //the card needs to go below the card of whatever hand that is getting hit on
+          const handXOffset = hand === 0 ? 0 : 10; // left / right
+          const stackOffset = cardIndex * 10;        // overlap depth
+
+        nextCard.style.setProperty("--card-offset",`${handXOffset}px`);
+
+        nextCard.style.setProperty(
+            "--card-stack",
+            `${stackOffset}px`
+        );
+        nextCard.classList.add("card-player-flip");
+    }
 }

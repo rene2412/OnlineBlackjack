@@ -7,6 +7,7 @@ import HitOrStand from "./actions/HitStand.jsx";
 import Insurance from "./actions/Insurance.jsx";
 import Count from "./actions/Count.jsx";
 import DealerCount from "./actions/DealerCount.jsx";
+import Split from "./actions/split.jsx";
 import UpdateGame from "./socket/updateGame.jsx";
 
 function GameRoot() {
@@ -17,8 +18,10 @@ function GameRoot() {
   const [showInsurance, setShowInsurance] = useState(false);
   const [playerCount, setPlayerCount] = useState(0);
   const [dealerCount, setDealerCount] = useState(0);
-
+  const [canSplit, setCanSplit] = useState(false);
   const [wager, setWager] = useState(null);
+  const [isChoosingSplit, setIsChoosingSplit] = useState(false);
+  const [canAct, setCanAct] = useState(false);
 
   console.log("GameStart: ", gameStart); 
 
@@ -30,6 +33,10 @@ function GameRoot() {
           onGameStart={(submittedWager) => {
             setGameStart(true);
             setWager(Number(submittedWager));
+            setCanAct(false);
+            setTimeout(() => {
+              setCanAct(true);
+            }, 3000);
           }} 
         />
       ) : ( 
@@ -42,8 +49,17 @@ function GameRoot() {
             setShowInsurance={setShowInsurance} 
             setPlayerCount={setPlayerCount} 
             setDealerCount={setDealerCount}
+            setCanSplit={setCanSplit}
+            setIsChoosingSplit={setIsChoosingSplit}
+            onActionAnimationDone={() => setCanAct(true)}
           />
-          <HitOrStand/>
+         {!isChoosingSplit && <HitOrStand canAct={canAct} lockActions={() => setCanAct(false)} />}
+          <Split canSplit={canSplit} 
+                 onSplitChosen={() => {
+                  setIsChoosingSplit(false);
+                  setCanSplit(false);
+                }}
+            />
           {showInsurance && <Insurance/>}
           <Count count={playerCount}/>
           <DealerCount count={dealerCount}/>

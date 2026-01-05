@@ -1,0 +1,134 @@
+/* Container for buttons */
+.Decisions {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* space between buttons */
+    padding: 60px 20px 40px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 100%);
+    opacity: 0;               /* initially hidden */
+    transform: translateY(30px); /* start slightly below */
+    pointer-events: none;     /* cannot click when hidden */
+    transition: opacity 0.5s ease, transform 0.5s ease; /* smooth fade + slide */
+}
+
+/* Show the buttons with pop-out */
+.Decisions.show {
+    opacity: 1;
+    transform: translateY(0); /* move to final position */
+    pointer-events: auto;     /* clickable now */
+}
+
+/* Buttons styling */
+.Decisions > button {
+    padding: 12px 30px;
+    border: 3px solid #004706;
+    border-radius: 12px;
+    color: #ffffff;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    box-shadow: 0 0 20px #004706;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #004706 0%, #004706 100%);
+}
+
+/* Hover effect */
+.Decisions > button:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 40px #004706, 0 10px 25px #004706;
+}
+
+/* Active click effect */
+.Decisions > button:active {
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px #004706;
+}
+
+/* Disabled state */
+.Decisions > button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+
+.dealer-count-container {
+    position: fixed;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    border: 3px solid   #470000;
+    border-radius: 15px;
+    padding: 15px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.dealer-count-value {
+    color:  #470000;
+    font-size: 36px;
+    font-weight: 900;
+    text-shadow: 0 0 15px  #470000;
+    line-height: 1;
+}
+.count-container {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    border: 3px solid   #004706;
+    border-radius: 15px;
+    padding: 15px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.count-value {
+    color: #004706; 
+    font-size: 36px;
+    font-weight: 900;
+    text-shadow: 0 0 15px  #004706;
+    line-height: 1;
+}
+
+.game-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #d4a017;
+  color: #1a1a1a;
+  padding: 24px 48px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1000;
+  text-align: center;
+  border: 3px solid #8b6914;
+  white-space: nowrap;
+}
+
+.game-message.visible {
+  opacity: 1;
+  visibility: visible;
+}

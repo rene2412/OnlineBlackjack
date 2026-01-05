@@ -47,34 +47,36 @@ int main(int argc, char* argv[]) {
 	     if ((*json)["deck"].isArray()) { 
 		const auto &deckArray = (*json)["deck"];  
 		cout << "Received deck: " << json->toStyledString() << endl;
-		 card_deck.GetDeck().clear();
 		 for (const auto &val : deckArray) {
 		    //json_text.push_back(val.asString());
 		    string card = val.asString();
 			if (card.empty()) {
 				continue;
 			}
+			char suit = card[0];
 	    	if (card[0] == 'A') { 
 				card_deck.push_back(11);
+			    card_deck.insertSuits(suit);	
 				continue;
 			}
 		    else if (card[0] == 'K' or card[0] == 'J' or card[0] == 'Q') { 
 				card_deck.push_back(10);
+			    card_deck.insertSuits(suit);	
 				continue;
 			}
 		    	int number = stoi(card);
 		    	card_deck.push_back(number);
+			    card_deck.insertSuits(suit);	
+		}
+		for (auto &suit : card_deck.GetSuitsDeck()) {
+			std::cout << suit << endl;
 		}
 	    reverse(card_deck.GetDeck().begin(), card_deck.GetDeck().end());
-		game.Deal(game.GetPlayers(), dealer, card_deck.GetDeck());
-		/*
-		int playerCount = game.GetPlayer()[0]->GetCount();
-        string updateCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(playerCount) + "}";
-		GameWebSocket::EventAPI(updateCount);
-		*/
+		reverse(card_deck.GetSuitsDeck().begin(), card_deck.GetSuitsDeck().end());
+	    game.Deal(game.GetPlayers(), dealer, card_deck.GetDeck(), card_deck.GetSuitsDeck());
 		PrintDealerHand();
 		PrintPlayerHands();
-		}
+	 }
 		else {
                 cout << "Error: No JSON received" << endl;
 			}         

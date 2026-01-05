@@ -46,7 +46,8 @@
   }
  .card-player-flip {
   --card-offset: 0px;
-  transform: translate(calc(-60px + var(--card-offset)), 95px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  --card-stack: 0px;
+  transform: translate(calc(-265px + var(--card-offset)), calc(210px + var(--card-stack))) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
  }
  .card-dealer-flip {
   --card-offset: 0px;
@@ -56,6 +57,7 @@
   --card-offset: 0px;
   transform: translate(calc(-290px + var(--card-offset)), 65px) rotateX(0deg) rotateY(180deg) rotateZ(0deg);
  }
+
 .top-left-number {
    top: 5px;
    left: 3px;

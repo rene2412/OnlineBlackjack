@@ -1,5 +1,5 @@
 import React from "react";
-import "./actions.css"
+import "./wager.css";
 
 export default function StartGame({onGameStart}) {
     const [wager, setWager] = React.useState("");
@@ -67,15 +67,16 @@ export default function StartGame({onGameStart}) {
             console.log("ERROR: ", error);
         }
     }  
-    if (!hasWagerSubmitted) {
-     return (
-            <div className="Decisions">
-            <form className="wager" onSubmit={handleWager}>
-                <label>Enter Wager: </label>
-                <input type="text" placeholder="$" value={wager} onChange={(e) => setWager(e.target.value)}/>
-                <button type="submit">Submit</button>
-                </form>
-                </div>
-            );
-        }
+if (!hasWagerSubmitted) {
+  return (
+    <div className="WagerForm">
+      <form onSubmit={handleWager}>
+        <label>Enter Wager: </label>
+        <input type="text" placeholder="$" value={wager} onChange={(e) => setWager(e.target.value)} />
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  );
+}
+
 }

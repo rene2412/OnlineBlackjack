@@ -5,6 +5,7 @@
 class Dealer {
       private:
 	   std::deque<int> cards;
+	   std::deque<char> suits;
 	   int balance = 0;
 	   int wins = 0;
 	   int losses = 0; 
@@ -12,14 +13,16 @@ class Dealer {
       public:
 	   Dealer()  {};
 	   const std::deque<int>& GetDealerCards() const { return cards; }
-	   
+	   const std::deque<char>& GetSuitCards() const { return suits; }
+
 	   bool GetAce() const { return ace; }
 	   void SetAce(bool newAce) { ace = newAce; }
 
 	   void push_back(int N) { cards.push_back(N); }
+	   void insert_suits(char N) { suits.push_back(N); }
 	   
-	   void ClearHand() { cards.clear(); }
-	   
+	   void ClearHand() { cards.clear(); }  
+
 	   int firstCard() {
 			return cards[0];
 	   }

@@ -94,3 +94,66 @@ void GameController::Insurance(const drogon::HttpRequestPtr &req,
     } catch(...) {}
 }
 
+void GameController::Split(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback)  {
+        try {
+        auto json = req->getJsonObject();
+        if (!json or !json->isMember("split")) {
+                 auto errorResp = drogon::HttpResponse::newHttpJsonResponse(Json::Value("Missing 'action' field"));
+        errorResp->setStatusCode(drogon::k400BadRequest);
+        callback(errorResp);
+        return;
+        }
+        std::string action = (*json)["split"].asString();
+        std::cout << "Player action received: " << action << std::endl;
+        auto &game = Game::GetGameInstance();
+        auto &deck = game.GetDeckInstance();
+        if (action == "yes") {
+            std::cout << "HTTP Request: Ready to split\n";
+            game.SetSplitState(true);
+            game.SetOnDeal(true);
+        }
+        Json::Value result;
+        result["message"] = "Successful Connection";
+        result["split"] = action;
+        auto resp = HttpResponse::newHttpJsonResponse(result);
+        callback(resp);
+
+            } catch(...) {}
+    }
+
+void GameController::SplitDecision(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+    auto json = req->getJsonObject();
+    if (!json || !json->isMember("action") || !json->isMember("handIndex")) {
+        auto resp = drogon::HttpResponse::newHttpJsonResponse(
+            Json::Value("Invalid split action payload"));
+        resp->setStatusCode(drogon::k400BadRequest);
+        callback(resp);
+        return;
+    }
+
+    std::string action = (*json)["action"].asString();
+    int handIndex = (*json)["handIndex"].asInt();
+    std::cout << "MADE IT TO SPLIT DECISION HTTP\n";
+    auto &game = Game::GetGameInstance();
+    auto &deck = game.GetDeckInstance();
+    if (!game.GetSplitState()) {
+        callback(drogon::HttpResponse::newHttpResponse());
+        return;
+    }
+
+    if (action == "hit") {
+        std::cout << "Ready To HIT hand: " << game.GetCurrentHand() << std::endl;
+        game.Split(game.GetPlayers(), deck.GetDeck(), deck.GetSuitsDeck(), 0, action); 
+        std::cout << "Made it Past SPLIT\n";
+        game.SetOnDeal(false);
+    }
+    else if (action == "stand") {
+        int nextHand = game.GetCurrentHand() + 1;
+        game.SetCurrentHand(nextHand);
+    }
+
+    Json::Value result;
+    result["ok"] = true;
+    callback(drogon::HttpResponse::newHttpJsonResponse(result));
+}

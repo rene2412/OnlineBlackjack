@@ -14,7 +14,6 @@ int Game::DetermineAceHandValue(std::vector<std::shared_ptr<Player>>& players, i
 	//Case 0: Player Draws 2 Aces at the start
 	 if (players[index]->DoubleAce() == true) {
 			std::cout << "Case 0\n";
-			//throw split API
 			players[index]->cardAt(0) = 1;
 			return ACE_11;
 	 }
@@ -63,29 +62,58 @@ int Game::DetermineDealerAceHandValue(Dealer &dealer)  {
 	else return ACE_11;  
 } 
 
-void Game::Deal(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck) {
+int Game::DetermineAceMultipleHandsValue(std::vector<std::shared_ptr<Player>> &players, int playerIndex, int handIndex) {
+	auto &playerHands = players[playerIndex]->GetSplitHands();
+	auto &currentHand = playerHands[handIndex]; 
+	 if (players[index]->DoubleMultiHandAce(currentHand) == true) {
+			players[index]->multiHandCardAt(currentHand, 0) = 1;
+			return ACE_11;
+	 }
+	for (int x : currentHand) {
+		if (x == ACE_11) {
+			 int sum = players[index]->GetMultiHandCount(currentHand) + ACE_11;
+			 if (sum > 21) {	    
+					return ACE_1;
+			 	}
+			else return ACE_11;
+			 }
+		}
+	if (players[index]->GetMultiHandCount(currentHand) + ACE_11 > 21) {
+		return ACE_1;
+	}  
+	else return ACE_11; 
+}
+
+void Game::Deal(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck, std::deque<char> &suits) {
+	  SetOnDeal(true);
 	  int turn = 0;
 	  while (turn < 2) {
 		int current_card = deck.back();
+		char current_suit = suits.back();
 		deck.pop_back();
+		suits.pop_back();
 			if (current_card == 11) { //ace defaults to 11
 				dealer.SetAce(true); 
 				std::cout << "sending card to ace func\n";
 				current_card = DetermineDealerAceHandValue(dealer);
 		}
-		dealer.push_back(current_card);	
+		dealer.push_back(current_card);
+		dealer.insert_suits(current_suit);
 	 for (int i = 0; i < players.size(); i++) {
  		current_card = deck.back();
+		current_suit = suits.back();
 		deck.pop_back();
+		suits.pop_back();
 		if (current_card == 11) { //ace defaults to 11
 				players[i]->SetAce(true); 
 				std::cout << "sending card to ace func\n";
 				current_card = DetermineAceHandValue(players, i);
 		}
 			players[i]->push_back(current_card);
+			players[i]->insert_suits(current_suit);
 		}
 	 	turn ++;
-	  }
+	  }  
 	    Dealer_BlackJack(players, dealer, deck);
 		Player_BlackJack(players, dealer, deck);
 }
@@ -95,6 +123,7 @@ void Game::PlayerHit(std::vector<std::shared_ptr<Player>> &players, std::deque<i
 		std::cout << "Deck Is Empty: Time to reshuffle\n";
 		return;
 	}
+
 	if (players[index]->GetBust() == true) {
 		return;
 	}
@@ -117,7 +146,6 @@ void Game::PlayerHit(std::vector<std::shared_ptr<Player>> &players, std::deque<i
 				  }
 			}
 		}
-
 	players[index]->push_back(current_card);
 }
 
@@ -132,6 +160,101 @@ void Game::ResetHands(std::vector<std::shared_ptr<Player>> &players, Dealer &dea
 	}
 	dealer.ClearHand();
 }
+
+bool Game::IsSplitValid(std::vector<std::shared_ptr<Player>> &players, int index) {
+	auto &playerSuitHand = players[index]->GetCardSuits();
+	char firstCard = playerSuitHand[0]; 
+	char secondCard =  playerSuitHand[1];
+	if (firstCard == secondCard) {
+		return true;
+	}
+	else return false;
+}
+
+void Game::Split(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, std::deque<char>& suitDeck, int index, std::string action) {
+	if (IsSplitValid(players, index))  {
+		if (GetOnDeal()) {
+			int deckSize = players[index]->GetDeck().size();
+			std::deque<int> firstHand, secondHand; 
+			int firstCard = players[index]->cardAt(0);
+			int secondCard = players[index]->cardAt(1);
+			if (secondCard == 1) {
+			//this is 2nd ace, but in its own seperate hand it should count as 11
+			secondCard = 11;
+			}
+			firstHand.push_back(firstCard);
+			secondHand.push_back(secondCard);
+			players[index]->insertHands(firstHand);
+			players[index]->insertHands(secondHand);
+			players[index]->ClearHand(); // clear the original hand since its now split into 2
+			}
+	  	char firstSuit = players[index]->suitCardAt(0);
+	  	char nextSuit = suitDeck.back();
+ 	  	int nextCard = deck.back();
+		int currentHand = GetCurrentHand();
+		//will hit one card to the furthest left hand (0)
+	 	HitMultipleHands(players, deck, index);
+		//what if the next card is the same as the 2 cards in players hands
+  		if (nextSuit == firstSuit) {
+			suitDeck.pop_back();
+			deck.pop_back();
+
+		//if the next card is the same, ask user if they want to keep splitting, send api here
+		std::string split = "{\"event\": \"playerSplitChoice\"}";
+		GameWebSocketController::EventAPI(split);
+		if (action == "yes") {
+			    std::cout << "Create the split hand!\n";
+				//if they do want to keep splitting run logic here
+				std::deque<int> newHand; //create the newHand and push into the vector of hands
+				newHand.push_back(nextCard);
+				players[index]->insertHands(newHand);	
+			}
+		}
+		//move on to next card and exit the loop if theres no more matching that qualifies for splitting
+		 nextSuit = suitDeck.back();
+		 nextCard = deck.back();
+	}
+}
+
+void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index) {
+	int currentHand = GetCurrentHand();
+	auto &playerSplitHands = players[index]->GetSplitHands();
+	auto &hand = playerSplitHands[currentHand];
+		if (deck.empty()) {
+			std::cout << "Deck Is Empty: Time to reshuffle\n";
+			return;
+		}
+	   if (players[index]->didSplitHandBust(hand)) {
+		 std::cout << "Players Hand has busted" << std::endl;  
+			return;
+		}
+		//print the hands
+		   for (int x : hand) {
+			std::cout << "Hand: " << currentHand << "| Current Card: " << x << std::endl;
+		   }
+			int nextCard = deck.back();
+			deck.pop_back();
+		//send the card to the front end
+		std::cout << "TELLING FRONT TO SPLIT HIT\n";
+		std::string splitHit = "{\"event\": \"splitHit\", \"handCount\": " + std::to_string(currentHand) + "}";
+		GameWebSocketController::EventAPI(splitHit);
+		if (nextCard == 11) { 
+				players[index]->SetAceHand(currentHand, true); 
+				nextCard = DetermineAceMultipleHandsValue(players, index, currentHand);
+		}
+		if (players[index]->GetAceHand(currentHand)) {
+			if (nextCard + players[index]->GetMultiHandCount(hand) > 21) {
+				for (int j = 0; j < hand.size(); j++) {
+						if (hand[j] == 11) {
+							players[index]->multiHandCardAt(hand, j) = 1;
+							break;
+						}
+				  }
+			}
+		}
+		players[index]->insertIntoHand(nextCard, currentHand);
+	}
+
 
 void Game::Insurance(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer) {
 		if (dealer.firstCard() == 10) {

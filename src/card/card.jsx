@@ -1,7 +1,7 @@
 import React, { useEffect } from "react"
 import { useRef } from "react";
 import "./card.css";
-import "../actions/actions.css";
+import "../actions/HitStand.css";
 
 const num_values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'K', 'Q'];
 const suits = [
@@ -361,7 +361,17 @@ export default function Card({ cardRef, gameStarted, lastDealerCard}) {
   }
 };
   
-const random_deck = React.useMemo(() => Shuffle(deck), []);
+//const random_deck = React.useMemo(() => Shuffle(deck), []);
+const random_deck = React.useMemo(() => {
+  const shuffled = Shuffle(deck); // shuffle the whole deck first
+  // Separate Aces from the rest
+  //const aces = shuffled.filter(card => card.key.startsWith("A"));
+  //const rest = shuffled.filter(card => !card.key.startsWith("A"));
+  // Return Aces first, then the rest
+  //return [...aces, ...rest];
+  return shuffled;
+}, []);
+
 
 React.useEffect(() => {
   console.log("Has Game Started: ", gameStarted);
@@ -394,10 +404,9 @@ React.useEffect(() => {
       });
   }, [cardRef, gameStarted]);
     
-  const onlyValues = random_deck.map(d => `${d.key}`);
   React.useEffect(() => { 
   const onlyValues = random_deck.map(d => `${d.key}`);
-    sendDeckToBackend(onlyValues);
+  sendDeckToBackend(onlyValues);
   }, []);
   
         return ( 

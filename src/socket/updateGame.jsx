@@ -2,19 +2,18 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import useGameSocket from "./socket.js";
 import { flipAnimation } from "../card/flipAnimation.js";
-import "../actions/actions.css";
+import "../actions/HitStand.css";
 
-
-export default function UpdateGame({ cardRef, nextCardIndex, lastDealerCard, setShowInsurance, setPlayerCount, setDealerCount}) {
+export default function UpdateGame({ cardRef, nextCardIndex, lastDealerCard, setShowInsurance, setPlayerCount, setDealerCount, setCanSplit, setIsChoosingSplit, onActionAnimationDone}) {
   const [eventData, setEventData] = useState(null);
   const [message, setMessage] = useState("");
   const hasBusted = useRef(false);
-  
   
   const hasDealerBusted = useRef(false);
   const dealerWin = useRef(false);
   const push = useRef(false);
   const playerWin = useRef(false);
+  const splitIndices = useRef([0, 0]);
 
   useGameSocket((data) => {
     console.log("Socket Data Received:", data);
@@ -29,7 +28,13 @@ export default function UpdateGame({ cardRef, nextCardIndex, lastDealerCard, set
       console.error("Card ref is empty! Cannot flip cards.");
       return;
     }
-    
+    if (eventData.event === "playerSplitChoice") {
+      console.log("RUNNING SPLIT FRONT");
+      setTimeout(() => {
+        setCanSplit(true);
+        setIsChoosingSplit(true);
+      }, 3000);
+    } 
    if (eventData.event === "playerWin") {
       playerWin.current = true; 
    }
@@ -50,7 +55,7 @@ export default function UpdateGame({ cardRef, nextCardIndex, lastDealerCard, set
       if (hasBusted.current) {
           console.log("Already handled bust ignoring");
           return;
-      }
+    }
       console.log("Flipping PlayBust");
       hasBusted.current = true;
       flipAnimation("player", cardRef, nextCardIndex.current);
@@ -76,11 +81,28 @@ export default function UpdateGame({ cardRef, nextCardIndex, lastDealerCard, set
   if (eventData.event == "insuranceCompleted") {
       setShowInsurance(false);
   } 
-    
+//split here
+  if (eventData.event === "splitHit") {
+       const hand = eventData.handCount; 
+       console.log("SPLIT HIT on hand:", hand);
+       setTimeout(() => {
+         flipAnimation("splitPlayer", cardRef, nextCardIndex.current, hand);
+         nextCardIndex.current++;
+        setTimeout(() => {
+         onActionAnimationDone?.();
+        }, 1000); 
+      }, hand * 1000);
+       return;
+   }
+
    if (eventData.event === "hit") {
         console.log("Animation triggered: Player Hit");
         flipAnimation("player", cardRef, nextCardIndex.current);
         nextCardIndex.current++;
+        setTimeout(() => {
+         onActionAnimationDone?.();
+        }, 1000); 
+
         return;
      }
   
@@ -131,7 +153,6 @@ export default function UpdateGame({ cardRef, nextCardIndex, lastDealerCard, set
         return;
       }
       
-      console.log("N is bigger than 0");
       flipAnimation("dealerFlipInPlace", cardRef, dealerIndex);
       setDealerCount(values[0]);
       console.log(values);
@@ -181,6 +202,7 @@ export default function UpdateGame({ cardRef, nextCardIndex, lastDealerCard, set
         }, N * 1000 + 500);
       }, 1000);
     }
+    
   }, [eventData, cardRef, nextCardIndex, setShowInsurance, setPlayerCount, setDealerCount]);
 
   return message ? (

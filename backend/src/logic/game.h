@@ -10,15 +10,30 @@
 class Game {
    private:
    	std::vector<std::shared_ptr<Player>> players;
-    int index = 0;
+	int index;
+	int currentHand;
 	Dealer dealer;
 	Deck deck;
+	bool splitState;
+	bool OnDeal;
   public:
-	Game() = default;
+	Game() {
+		index = 0;
+		currentHand = 0;
+		splitState = false;
+		OnDeal = false;
+	}
 	
 	std::vector<std::shared_ptr<Player>>& GetPlayers() { return players; } 
 	int GetCurrentPlayer() const { return index; } 
+	int GetCurrentHand() const { return currentHand; }
 	void SetCurrentPlayer(int newPlayer) { index = newPlayer; }
+    bool GetSplitState() const { return splitState; }
+	bool GetOnDeal() const { return OnDeal; }
+    
+	void SetSplitState(bool newState) { splitState = newState; }
+	void SetOnDeal(bool newDeal) { OnDeal = newDeal; }
+	void SetCurrentHand(int newHand) {currentHand = newHand; }
 
 	static Game& GetGameInstance() {
 		static Game instance;
@@ -36,10 +51,14 @@ class Game {
 	int DealerStand(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
 	int DetermineAceHandValue(std::vector<std::shared_ptr<Player>> &players, int index);
 	int DetermineDealerAceHandValue(Dealer &dealer);
+	int DetermineAceMultipleHandsValue(std::vector<std::shared_ptr<Player>> &players, int playerIndex, int handIndex);
+	bool IsSplitValid(std::vector<std::shared_ptr<Player>> &players, int index);
 	void push_back(const Player &p); 
+	void Split(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, std::deque<char> &suitDeck, int index, std::string action);
+	void HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index);
 	void Shuffle();
 	void ResetHands(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer);
-	void Deal(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
+	void Deal(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck, std::deque<char> &suits);
 	void PlayerHit(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index);
 	void ClearHand(std::vector<std::shared_ptr<Player>> &players, int index);
 	void Push(std::vector<std::shared_ptr<Player>> &players, int index);
