@@ -304,4 +304,8 @@ CMakeFiles/hello_server.dir/src/controller/controller.cpp.o: \
  /home/rene/OnlineBlackjack/backend/src/controller/../logic/game.h \
  /home/rene/OnlineBlackjack/backend/src/controller/../logic/player.h \
  /home/rene/OnlineBlackjack/backend/src/controller/../logic/dealer.h \
- /home/rene/OnlineBlackjack/backend/src/controller/../logic/deck.h
+ /home/rene/OnlineBlackjack/backend/src/controller/../logic/deck.h \
+ /home/rene/OnlineBlackjack/backend/src/controller/../socket/webSocket.h \
+ /usr/local/include/drogon/WebSocketController.h \
+ /usr/local/include/drogon/WebSocketConnection.h \
+ /usr/include/jsoncpp/json/value.h

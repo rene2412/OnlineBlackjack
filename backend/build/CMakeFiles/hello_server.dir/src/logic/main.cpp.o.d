@@ -307,7 +307,7 @@ CMakeFiles/hello_server.dir/src/logic/main.cpp.o: \
  /home/rene/OnlineBlackjack/backend/src/logic/dealer.h \
  /usr/local/include/drogon/HttpController.h \
  /home/rene/OnlineBlackjack/backend/src/logic/../controller/controller.h \
- /home/rene/OnlineBlackjack/backend/src/logic/../socket/webSocket.h \
+ /home/rene/OnlineBlackjack/backend/src/logic/../controller/../socket/webSocket.h \
  /usr/local/include/drogon/WebSocketController.h \
  /usr/local/include/drogon/WebSocketConnection.h \
  /usr/include/jsoncpp/json/value.h

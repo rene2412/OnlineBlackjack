@@ -6,6 +6,7 @@ CMakeFiles/hello_server.dir/src/controller/controller.cpp.o: /home/rene/OnlineBl
   /home/rene/OnlineBlackjack/backend/src/logic/deck.h \
   /home/rene/OnlineBlackjack/backend/src/logic/game.h \
   /home/rene/OnlineBlackjack/backend/src/logic/player.h \
+  /home/rene/OnlineBlackjack/backend/src/socket/webSocket.h \
   /home/rene/OnlineBlackjack/backend/src/controller/controller.h \
   /usr/include/alloca.h \
   /usr/include/arpa/inet.h \
@@ -346,6 +347,8 @@ CMakeFiles/hello_server.dir/src/controller/controller.cpp.o: /home/rene/OnlineBl
   /usr/local/include/drogon/RequestStream.h \
   /usr/local/include/drogon/Session.h \
   /usr/local/include/drogon/UploadFile.h \
+  /usr/local/include/drogon/WebSocketConnection.h \
+  /usr/local/include/drogon/WebSocketController.h \
   /usr/local/include/drogon/drogon_callbacks.h \
   /usr/local/include/drogon/exports.h \
   /usr/local/include/drogon/nosql/RedisClient.h \
@@ -835,8 +838,8 @@ CMakeFiles/hello_server.dir/src/logic/game.cpp.o: /home/rene/OnlineBlackjack/bac
   /usr/local/include/trantor/utils/Utilities.h
 
 CMakeFiles/hello_server.dir/src/logic/main.cpp.o: /home/rene/OnlineBlackjack/backend/src/logic/main.cpp \
-  /home/rene/OnlineBlackjack/backend/src/controller/controller.h \
   /home/rene/OnlineBlackjack/backend/src/socket/webSocket.h \
+  /home/rene/OnlineBlackjack/backend/src/controller/controller.h \
   /home/rene/OnlineBlackjack/backend/src/logic/dealer.h \
   /home/rene/OnlineBlackjack/backend/src/logic/deck.h \
   /home/rene/OnlineBlackjack/backend/src/logic/game.h \
@@ -1612,8 +1615,6 @@ CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: /home/rene/OnlineBlackja
 
 /home/rene/OnlineBlackjack/backend/src/logic/main.cpp:
 
-/home/rene/OnlineBlackjack/backend/src/socket/webSocket.h:
-
 /home/rene/OnlineBlackjack/backend/src/logic/game.cpp:
 
 /usr/local/include/trantor/utils/Utilities.h:
@@ -1782,13 +1783,11 @@ CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: /home/rene/OnlineBlackja
 
 /usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
 
-/usr/include/c++/13/bits/uses_allocator_args.h:
+/usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:
 
-/usr/include/arpa/inet.h:
+/usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
 
-/usr/include/c++/13/bits/atomic_base.h:
-
-/usr/include/c++/13/bits/unordered_set.h:
+/usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
 
@@ -1803,10 +1802,6 @@ CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: /home/rene/OnlineBlackja
 /usr/include/c++/13/bits/unordered_map.h:
 
 /usr/include/c++/13/bits/quoted_string.h:
-
-/usr/include/c++/13/bits/new_allocator.h:
-
-/usr/include/c++/13/bits/stl_uninitialized.h:
 
 /usr/local/include/drogon/WebSocketController.h:
 
@@ -1880,6 +1875,16 @@ CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: /home/rene/OnlineBlackja
 
 /usr/include/c++/13/bits/ostream.tcc:
 
+/usr/include/c++/13/bits/stl_uninitialized.h:
+
+/usr/include/c++/13/bits/new_allocator.h:
+
+/usr/include/arpa/inet.h:
+
+/usr/include/c++/13/bits/atomic_base.h:
+
+/usr/include/c++/13/bits/uses_allocator_args.h:
+
 /usr/include/c++/13/bits/stl_function.h:
 
 /usr/include/c++/13/bits/move.h:
@@ -1912,7 +1917,7 @@ CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: /home/rene/OnlineBlackja
 
 /usr/include/c++/13/bits/fs_ops.h:
 
-/usr/include/c++/13/bits/atomic_futex.h:
+/usr/include/c++/13/bits/ios_base.h:
 
 /usr/include/c++/13/clocale:
 
@@ -2004,6 +2009,12 @@ CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: /home/rene/OnlineBlackja
 
 /usr/include/c++/13/bits/stl_tempbuf.h:
 
+/usr/local/include/trantor/net/EventLoop.h:
+
+/usr/include/time.h:
+
+/usr/include/x86_64-linux-gnu/bits/setjmp.h:
+
 /usr/include/c++/13/bits/functional_hash.h:
 
 /usr/include/c++/13/bits/stl_relops.h:
@@ -2012,25 +2023,23 @@ CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: /home/rene/OnlineBlackja
 
 /usr/include/errno.h:
 
+/usr/include/c++/13/bits/unordered_set.h:
+
+/home/rene/OnlineBlackjack/backend/src/socket/webSocket.h:
+
 /usr/include/x86_64-linux-gnu/bits/long-double.h:
 
 /usr/include/c++/13/bits/algorithmfwd.h:
 
 /usr/include/jsoncpp/json/reader.h:
 
-/usr/include/c++/13/bits/alloc_traits.h:
-
-/usr/include/c++/13/bits/concept_check.h:
+/usr/include/asm-generic/socket.h:
 
 /home/rene/OnlineBlackjack/backend/src/logic/dealer.h:
 
-/usr/include/asm-generic/socket.h:
+/usr/include/c++/13/bits/alloc_traits.h:
 
-/usr/local/include/trantor/net/EventLoop.h:
-
-/usr/include/time.h:
-
-/usr/include/x86_64-linux-gnu/bits/setjmp.h:
+/usr/include/c++/13/bits/concept_check.h:
 
 /usr/include/c++/13/bits/predefined_ops.h:
 
@@ -2104,6 +2113,8 @@ CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: /home/rene/OnlineBlackja
 
 /usr/include/c++/13/backward/auto_ptr.h:
 
+/usr/include/c++/13/bits/atomic_futex.h:
+
 /usr/include/c++/13/atomic:
 
 /usr/local/include/drogon/DrClassMap.h:
@@ -2173,8 +2184,6 @@ CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: /home/rene/OnlineBlackja
 /usr/include/x86_64-linux-gnu/bits/types/error_t.h:
 
 /usr/include/c++/13/bits/hashtable.h:
-
-/usr/include/c++/13/bits/ios_base.h:
 
 /usr/include/c++/13/optional:
 
@@ -2385,9 +2394,3 @@ CMakeFiles/hello_server.dir/src/socket/webSocket.cpp.o: /home/rene/OnlineBlackja
 /usr/include/x86_64-linux-gnu/bits/select.h:
 
 /usr/include/x86_64-linux-gnu/bits/socket.h:
-
-/usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
-
-/usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
