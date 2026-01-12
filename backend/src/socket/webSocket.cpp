@@ -15,7 +15,6 @@ void GameWebSocketController::handleNewConnection(const HttpRequestPtr &req, con
         	std::string updateCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(playerCount) + "}";
 			connection->send(updateCount);
     }  
-    std::cout << "Sending dealer api\n";
     Dealer &dealer = game.GetDealerInstance();
     int dealerCount = dealer.GetSum()[0];
     std::string updateDealerCount = "{\"event\": \"updateDealerCount\", \"count\": " + std::to_string(dealerCount) + "}";
@@ -23,7 +22,6 @@ void GameWebSocketController::handleNewConnection(const HttpRequestPtr &req, con
     //split
     for (int i = 0; i < game.GetPlayers().size(); i++) {
     	if (game.IsSplitValid(game.GetPlayers(), i)) {
-		    std::cout << "TIME TO SPLIT\n";
 		    std::string split = "{\"event\": \"playerSplitChoice\"}";
 		    connection->send(split);
 	    }   

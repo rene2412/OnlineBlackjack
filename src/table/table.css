@@ -18,7 +18,7 @@
 
 .table_canvas {
   position: absolute;
-  top: 50%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
 
@@ -35,12 +35,12 @@
   background-repeat: no-repeat;
   background-position: center;
   z-index: 5;
-  transform: translateX(-11px) translateY(-6px);
+  transform: translateX(-11px) translateY(-73px);
 }
 
 .chips_tray {
   position: absolute;
-  top: 90px;              
+  top: 30px;              
   left: 50%;
   transform: translateX(-50%);
 

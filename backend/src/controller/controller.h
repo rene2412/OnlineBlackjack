@@ -1,5 +1,8 @@
+#pragma once
 #include <drogon/HttpController.h>
 #include "../logic/game.h"
+#include "../socket/webSocket.h"
+#include <deque>
 class GameController : public drogon::HttpController<GameController> {
         public:
                 GameController() = default;

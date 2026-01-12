@@ -2,8 +2,8 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import useGameSocket from "./socket.js";
 import { flipAnimation } from "../card/flipAnimation.js";
-import "../actions/HitStand.css";
-
+import "../actions/gameMessages.css";
+import "../card/card.css";
 export default function UpdateGame({ cardRef, nextCardIndex, lastDealerCard, setShowInsurance, setPlayerCount, setDealerCount, setCanSplit, setIsChoosingSplit, onActionAnimationDone}) {
   const [eventData, setEventData] = useState(null);
   const [message, setMessage] = useState("");
@@ -29,11 +29,20 @@ export default function UpdateGame({ cardRef, nextCardIndex, lastDealerCard, set
       return;
     }
     if (eventData.event === "playerSplitChoice") {
-      console.log("RUNNING SPLIT FRONT");
-      setTimeout(() => {
-        setCanSplit(true);
-        setIsChoosingSplit(true);
-      }, 3000);
+
+    // Wait for cards to appear before showing buttons
+    setTimeout(() => {
+    setCanSplit(true);
+    setIsChoosingSplit(true);
+    
+      const glowInterval = setInterval(() => {
+      const firstCard = document.querySelector('.card[data-hand="0"]');
+      if (firstCard) {
+        firstCard.classList.add("split-active");
+        clearInterval(glowInterval);
+          }
+        }, 16); // wait per frame
+      }, 3000); // matches your current delay for cards
     } 
    if (eventData.event === "playerWin") {
       playerWin.current = true; 
@@ -85,13 +94,19 @@ export default function UpdateGame({ cardRef, nextCardIndex, lastDealerCard, set
   if (eventData.event === "splitHit") {
        const hand = eventData.handCount; 
        console.log("SPLIT HIT on hand:", hand);
-       setTimeout(() => {
-         flipAnimation("splitPlayer", cardRef, nextCardIndex.current, hand);
+          const cardEl = cardRef.current[nextCardIndex.current];
+          cardEl.dataset.hand = hand;
+
+          cardEl.classList.add("split-active");
+         
+          document.querySelectorAll(".card.split-active").forEach(c => {
+      if (c.dataset.hand !== String(hand)) c.classList.remove("split-active");
+    });
+          flipAnimation("splitPlayer", cardRef, nextCardIndex.current, hand);
          nextCardIndex.current++;
         setTimeout(() => {
          onActionAnimationDone?.();
         }, 1000); 
-      }, hand * 1000);
        return;
    }
 
@@ -111,12 +126,10 @@ export default function UpdateGame({ cardRef, nextCardIndex, lastDealerCard, set
       const N = eventData.count;
       console.log("Animation Count: ", N);
       if (N < 0) return;
-      
       const dealerIndex = lastDealerCard.current;
       console.log("Dealer Index: ", dealerIndex);
       
       const values = eventData.values;
-      
       if (N === 0) {
         flipAnimation("dealerFlipInPlace", cardRef, dealerIndex);
         setDealerCount(values[0]);

@@ -365,11 +365,11 @@ export default function Card({ cardRef, gameStarted, lastDealerCard}) {
 const random_deck = React.useMemo(() => {
   const shuffled = Shuffle(deck); // shuffle the whole deck first
   // Separate Aces from the rest
-  //const aces = shuffled.filter(card => card.key.startsWith("A"));
-  //const rest = shuffled.filter(card => !card.key.startsWith("A"));
+     const aces = shuffled.filter(card => card.key.startsWith("A"));
+     const rest = shuffled.filter(card => !card.key.startsWith("A"));
   // Return Aces first, then the rest
-  //return [...aces, ...rest];
-  return shuffled;
+     return [...aces, ...rest];
+  //return shuffled;
 }, []);
 
 

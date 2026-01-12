@@ -9,6 +9,7 @@ import Count from "./actions/Count.jsx";
 import DealerCount from "./actions/DealerCount.jsx";
 import Split from "./actions/split.jsx";
 import UpdateGame from "./socket/updateGame.jsx";
+import PlayerControlPanel from "./Panel/PlayerControlPanel.jsx";
 
 function GameRoot() {
   const cardRef = useRef([]);
@@ -53,16 +54,25 @@ function GameRoot() {
             setIsChoosingSplit={setIsChoosingSplit}
             onActionAnimationDone={() => setCanAct(true)}
           />
-         {!isChoosingSplit && <HitOrStand canAct={canAct} lockActions={() => setCanAct(false)} />}
-          <Split canSplit={canSplit} 
-                 onSplitChosen={() => {
-                  setIsChoosingSplit(false);
-                  setCanSplit(false);
-                }}
-            />
+           <PlayerControlPanel
+            playerCount={playerCount}
+            dealerCount={dealerCount}
+            canAct={canAct}
+            canSplit={canSplit}
+            isChoosingSplit={isChoosingSplit}
+            gameStart={gameStart}
+          > {!isChoosingSplit && <HitOrStand canAct={canAct} lockActions={() => setCanAct(false)} />}
+          <Split 
+              canSplit={canSplit}
+              cardRef={cardRef}
+              nextCardIndex={nextCardIndex} 
+              onSplitDone={() => {
+              setIsChoosingSplit(false);
+              setCanSplit(false);
+            }}
+          />
           {showInsurance && <Insurance/>}
-          <Count count={playerCount}/>
-          <DealerCount count={dealerCount}/>
+          </PlayerControlPanel>
         </>
       )}
     </>

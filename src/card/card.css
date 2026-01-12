@@ -42,20 +42,20 @@
    transform: rotateY(180deg); 
  }
   .card-flip-in-place {
-     transform: translate(-260px, 65px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) !important;
+     transform: translate(-215px, 25px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) !important;
   }
  .card-player-flip {
   --card-offset: 0px;
   --card-stack: 0px;
-  transform: translate(calc(-265px + var(--card-offset)), calc(210px + var(--card-stack))) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  transform: translate(calc(-240px + var(--card-offset)), calc(150px + var(--card-stack))) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
  }
  .card-dealer-flip {
   --card-offset: 0px;
-  transform: translate(calc(-290px + var(--card-offset)), 65px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  transform: translate(calc(-215px + var(--card-offset)), 25px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
  }
  .card-dealer-flip-reverse {
   --card-offset: 0px;
-  transform: translate(calc(-290px + var(--card-offset)), 65px) rotateX(0deg) rotateY(180deg) rotateZ(0deg);
+  transform: translate(calc(-215px + var(--card-offset)), 25px) rotateX(0deg) rotateY(180deg) rotateZ(0deg);
  }
 
 .top-left-number {
@@ -283,4 +283,49 @@
    font-size: 9px;
    z-index: 1;
    transform: rotate(180deg)
+}
+
+/* ================================
+   SPLIT ACTIVE CARD – GOLD GLOW
+================================ */
+.card.split-active {
+  z-index: 10;
+
+  /* HARD outer glow + soft bloom */
+  box-shadow:
+    0 0 6px rgba(255, 215, 0, 0.9),
+    0 0 16px rgba(255, 215, 0, 0.75),
+    0 0 32px rgba(255, 200, 0, 0.6),
+    0 0 48px rgba(255, 180, 0, 0.45);
+
+  animation: goldPulse 1.4s ease-in-out infinite;
+}
+
+/* ================================
+   PULSE ANIMATION (NO SCALE)
+================================ */
+@keyframes goldPulse {
+  0% {
+    box-shadow:
+      0 0 6px rgba(255, 215, 0, 0.8),
+      0 0 16px rgba(255, 215, 0, 0.6),
+      0 0 28px rgba(255, 200, 0, 0.5),
+      0 0 40px rgba(255, 180, 0, 0.35);
+  }
+
+  50% {
+    box-shadow:
+      0 0 10px rgba(255, 225, 100, 1),
+      0 0 26px rgba(255, 215, 0, 0.9),
+      0 0 46px rgba(255, 200, 0, 0.75),
+      0 0 70px rgba(255, 180, 0, 0.6);
+  }
+
+  100% {
+    box-shadow:
+      0 0 6px rgba(255, 215, 0, 0.8),
+      0 0 16px rgba(255, 215, 0, 0.6),
+      0 0 28px rgba(255, 200, 0, 0.5),
+      0 0 40px rgba(255, 180, 0, 0.35);
+  }
 }

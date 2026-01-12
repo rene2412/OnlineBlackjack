@@ -13,7 +13,7 @@ export default function HitOrStand({ canAct }) {
     // delay appearance to let cards deal
     const timer = setTimeout(() => {
       setVisible(true);
-    }, 2000);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [canAct]);
@@ -33,9 +33,21 @@ export default function HitOrStand({ canAct }) {
   }
 
 return (
-   <div className={`Decisions ${visible ? "show" : ""}`}>
-      <button className="hit" disabled={!canAct} onClick={() => handleClick("hit")}>Hit</button>
-      <button className="stand" disabled={!canAct} onClick={() => handleClick("stand")}>Stand</button>
+     <div className="hit-stand-buttons">
+      <button 
+        className="split-btn player-action yes" 
+        disabled={!canAct} 
+        onClick={() => handleClick("hit")}
+      >
+        HIT
+      </button>
+      <button 
+        className="split-btn player-action no" 
+        disabled={!canAct} 
+        onClick={() => handleClick("stand")}
+      >
+        STAND
+      </button>
     </div>
   );
 }

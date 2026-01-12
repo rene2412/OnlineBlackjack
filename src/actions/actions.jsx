@@ -68,15 +68,41 @@ export default function StartGame({onGameStart}) {
         }
     }  
 if (!hasWagerSubmitted) {
-  return (
-    <div className="WagerForm">
-      <form onSubmit={handleWager}>
-        <label>Enter Wager: </label>
-        <input type="text" placeholder="$" value={wager} onChange={(e) => setWager(e.target.value)} />
-        <button type="submit">Submit</button>
-      </form>
+    return (
+    <div className="wager-panel">
+      <div className="wager-container">
+        <div className="wager-header">
+          <div className="chip-icon"></div>
+          <h2 className="wager-title">Place Your Bet</h2>
+          <div className="chip-icon"></div>
+        </div>
+        
+        <form onSubmit={handleWager} className="wager-form">
+          <div className="input-wrapper">
+            <span className="dollar-sign">$</span>
+            <input 
+              type="text" 
+              className="wager-input"
+              placeholder="25" 
+              value={wager} 
+              onChange={(e) => setWager(e.target.value)} 
+              autoFocus
+            />
+          </div>
+          
+          <div className="bet-limits">
+            <span className="limit-text">Min: $25</span>
+            <span className="limit-divider">•</span>
+            <span className="limit-text">Max: $100</span>
+          </div>
+          
+          <button type="submit" className="submit-wager-btn">
+            <span className="btn-text">DEAL CARDS</span>
+            <span className="btn-shine"></span>
+          </button>
+        </form>
+      </div>
     </div>
-  );
-}
-
+        );
+    }
 }

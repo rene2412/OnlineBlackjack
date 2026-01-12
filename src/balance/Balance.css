@@ -1,0 +1,499 @@
+/* ================================
+   DEALER COUNT BOX - TOP
+================================ */
+
+.dealer-count-box {
+  position: fixed;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+}
+
+.dealer-count-box .dealer-counter {
+  border-color: #ff6464;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(255, 100, 100, 0.4),
+    inset 0 2px 5px rgba(255, 255, 255, 0.05);
+}
+
+.dealer-counter .counter-label {
+  color: #ff6464;
+}
+
+.dealer-counter .counter-value {
+  text-shadow: 0 2px 8px rgba(255, 100, 100, 0.5);
+}
+
+/* ================================
+   PLAYER CONTROL PANEL - BOTTOM
+================================ */
+
+.player-control-panel {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(20, 20, 20, 0.95), rgba(40, 40, 40, 0.95));
+  border: 3px solid #d4af37;
+  border-radius: 25px;
+  padding: 25px 35px;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(212, 175, 55, 0.3),
+    inset 0 2px 10px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 500px;
+  min-height: 200px;
+}
+
+/* Player Count Section - Top of panel */
+.player-count-section {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+/* Hand Counters Section */
+.hand-counters {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+}
+
+.counter-box {
+  background: linear-gradient(145deg, rgba(30, 30, 30, 0.9), rgba(15, 15, 15, 0.9));
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  border-radius: 15px;
+  padding: 12px 20px;
+  min-width: 100px;
+  text-align: center;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.5),
+    inset 0 2px 5px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.counter-box:hover {
+  border-color: rgba(212, 175, 55, 0.8);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.6),
+    0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+.main-counter {
+  border-color: #d4af37;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(212, 175, 55, 0.4),
+    inset 0 2px 5px rgba(255, 255, 255, 0.05);
+}
+
+.counter-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #d4af37;
+  font-weight: 600;
+  margin-bottom: 5px;
+  font-family: 'Arial', sans-serif;
+}
+
+.counter-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(212, 175, 55, 0.5);
+  font-family: 'Georgia', serif;
+}
+
+/* Split Counters Container - Dynamic sizing */
+.split-counters-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+  width: 100%;
+  transition: all 0.5s ease;
+}
+
+.split-counter {
+  position: relative;
+  border-color: rgba(100, 150, 255, 0.5);
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.split-counter .counter-label {
+  color: #6496ff;
+  font-size: 10px;
+}
+
+.split-counter .counter-value {
+  font-size: 28px;
+  text-shadow: 0 2px 8px rgba(100, 150, 255, 0.5);
+}
+
+/* Counter status states */
+.split-counter.bust {
+  background: linear-gradient(145deg, rgba(30, 10, 10, 0.9), rgba(15, 5, 5, 0.9));
+  border-color: rgba(139, 0, 0, 0.8);
+  opacity: 0.6;
+}
+
+.split-counter.bust .counter-value {
+  color: #8b0000;
+  text-shadow: 0 2px 8px rgba(139, 0, 0, 0.5);
+}
+
+.split-counter.win {
+  border-color: rgba(76, 175, 80, 0.8);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(76, 175, 80, 0.6);
+}
+
+.split-counter.win .counter-value {
+  color: #4caf50;
+  text-shadow: 0 2px 8px rgba(76, 175, 80, 0.6);
+}
+
+/* Counter overlay for X and checkmark */
+.counter-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: 900;
+  color: #ff0000;
+  text-shadow: 
+    0 0 10px rgba(255, 0, 0, 0.8),
+    0 0 20px rgba(255, 0, 0, 0.5);
+  pointer-events: none;
+  animation: overlayPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 10;
+}
+
+.counter-overlay.win {
+  color: #4caf50;
+  text-shadow: 
+    0 0 10px rgba(76, 175, 80, 0.8),
+    0 0 20px rgba(76, 175, 80, 0.5);
+}
+
+@keyframes overlayPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Action Buttons Section */
+.action-buttons-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+}
+
+/* Override split.css positioning to work inside panel */
+.player-control-panel .split-ui {
+  position: relative !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+}
+
+/* Split label styling inside panel */
+.player-control-panel .split-label {
+  color: #f1c40f;
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin: 0;
+  animation: labelGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes labelGlow {
+  0%, 100% { text-shadow: 0 0 6px rgba(241, 196, 15, 0.35); }
+  50% { text-shadow: 0 0 14px rgba(241, 196, 15, 0.85); }
+}
+
+/* Split decision buttons container */
+.player-control-panel .split-decision-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-left: 0 !important;
+}
+
+/* Reset button positioning inside panel */
+.player-control-panel .split-btn.player-action.yes {
+  left: 0 !important;
+}
+
+.player-control-panel .split-btn.player-action.no {
+  left: 0 !important;
+}
+
+/* Hit/Stand buttons container inside panel */
+.player-control-panel .hit-stand-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  filter: none !important;
+  position: relative !important;
+}
+
+/* Style your existing HitOrStand component buttons */
+.action-buttons-wrapper .hit-stand-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  filter: none; /* override any existing filter */
+}
+
+/* Style your existing Split component buttons */
+.action-buttons-wrapper .split-choice-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.dealer-counter {
+  /* styles moved to .dealer-count-box .dealer-counter above */
+}
+
+.dealer-counter .counter-label {
+  /* styles moved above */
+}
+
+.dealer-counter .counter-value {
+  /* styles moved above */
+}
+
+.action-btn {
+  height: 60px;
+  padding: 0 40px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 30px;
+  border: 3px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  font-family: 'Arial', sans-serif;
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Shine effect */
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 70%
+  );
+  transform: rotate(45deg);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+/* HIT BUTTON - Fiery Red */
+.hit-btn {
+  background: linear-gradient(145deg, #ff0000, #cc0000, #8b0000);
+  border-color: #ff6b6b;
+  color: #fff;
+  box-shadow: 
+    0 0 20px rgba(255, 0, 0, 0.6),
+    0 0 40px rgba(255, 0, 0, 0.4),
+    inset 0 2px 8px rgba(255, 100, 100, 0.5),
+    inset 0 -2px 8px rgba(139, 0, 0, 0.5);
+}
+
+.hit-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 
+    0 0 30px rgba(255, 0, 0, 0.9),
+    0 0 60px rgba(255, 0, 0, 0.6),
+    0 6px 20px rgba(0, 0, 0, 0.5),
+    inset 0 2px 12px rgba(255, 100, 100, 0.7);
+  filter: brightness(1.15);
+  border-color: #ff9999;
+}
+
+.hit-btn:active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.9);
+  box-shadow: 
+    0 0 15px rgba(255, 0, 0, 0.8),
+    inset 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* STAND BUTTON - Vegas Gold */
+.stand-btn {
+  background: linear-gradient(145deg, #ffd700, #ffb700, #cc8800);
+  border-color: #ffe55c;
+  color: #1a1a1a;
+  box-shadow: 
+    0 0 20px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(255, 215, 0, 0.5),
+    inset 0 2px 8px rgba(255, 255, 150, 0.6),
+    inset 0 -2px 8px rgba(204, 136, 0, 0.5);
+}
+
+.stand-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 
+    0 0 30px rgba(255, 215, 0, 1),
+    0 0 60px rgba(255, 215, 0, 0.7),
+    0 6px 20px rgba(0, 0, 0, 0.5),
+    inset 0 2px 12px rgba(255, 255, 150, 0.8);
+  filter: brightness(1.15);
+  border-color: #ffee99;
+}
+
+.stand-btn:active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.9);
+  box-shadow: 
+    0 0 15px rgba(255, 215, 0, 0.8),
+    inset 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Optional Actions */
+.optional-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* DOUBLE BUTTON - Electric Blue */
+.double-btn {
+  background: linear-gradient(145deg, #0066ff, #0044cc, #002288);
+  border-color: #4d94ff;
+  color: #fff;
+  box-shadow: 
+    0 0 15px rgba(0, 102, 255, 0.6),
+    0 0 30px rgba(0, 102, 255, 0.4),
+    inset 0 2px 8px rgba(77, 148, 255, 0.5),
+    inset 0 -2px 8px rgba(0, 34, 136, 0.5);
+  font-size: 16px;
+  height: 50px;
+  min-width: 120px;
+}
+
+.double-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 
+    0 0 25px rgba(0, 102, 255, 0.9),
+    0 0 50px rgba(0, 102, 255, 0.6),
+    0 6px 20px rgba(0, 0, 0, 0.5);
+  filter: brightness(1.15);
+  border-color: #80b3ff;
+}
+
+.double-btn:active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.9);
+}
+
+/* SPLIT BUTTON - Purple */
+.split-btn {
+  background: linear-gradient(145deg, #8b00ff, #6600cc, #440088);
+  border-color: #b366ff;
+  color: #fff;
+  box-shadow: 
+    0 0 15px rgba(139, 0, 255, 0.6),
+    0 0 30px rgba(139, 0, 255, 0.4),
+    inset 0 2px 8px rgba(179, 102, 255, 0.5),
+    inset 0 -2px 8px rgba(68, 0, 136, 0.5);
+  font-size: 16px;
+  height: 50px;
+  min-width: 120px;
+}
+
+.split-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 
+    0 0 25px rgba(139, 0, 255, 0.9),
+    0 0 50px rgba(139, 0, 255, 0.6),
+    0 6px 20px rgba(0, 0, 0, 0.5);
+  filter: brightness(1.15);
+  border-color: #cc99ff;
+}
+
+.split-btn:active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.9);
+}
+
+/* Disabled state */
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+  transform: none !important;
+}
+
+.action-btn:disabled::before {
+  animation: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .player-control-panel {
+    min-width: 90vw;
+    padding: 20px;
+  }
+
+  .action-btn {
+    font-size: 16px;
+    padding: 0 25px;
+    min-width: 100px;
+  }
+
+  .counter-value {
+    font-size: 28px;
+  }
+}

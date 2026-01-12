@@ -26,15 +26,13 @@ export function flipAnimation(type, cardRef, cardIndex, hand = 0) {
         }
     if (type === "splitPlayer") {
         //the card needs to go below the card of whatever hand that is getting hit on
-          const handXOffset = hand === 0 ? 0 : 10; // left / right
-          const stackOffset = cardIndex * 10;        // overlap depth
-
+          const handXOffset = hand === 0 ? 0 : 60; // left / right
+     // Count cards that came BEFORE this one in the same hand
+        const cardsInHand = Array.from(cardRef.current).slice(0, cardIndex).filter(c => c.dataset.hand === String(hand)).length;
+        const stackOffset = cardsInHand * 25; // consistent spacing per hand
+          
         nextCard.style.setProperty("--card-offset",`${handXOffset}px`);
-
-        nextCard.style.setProperty(
-            "--card-stack",
-            `${stackOffset}px`
-        );
+        nextCard.style.setProperty("--card-stack", `${stackOffset}px`);
         nextCard.classList.add("card-player-flip");
     }
 }

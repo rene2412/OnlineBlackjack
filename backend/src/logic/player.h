@@ -52,6 +52,7 @@ class Player {
 	   void SetDecision(bool newDecision) { decision = newDecision; }
 	   void SetAce(bool newState) { ace = newState; }
 	   void SetAceHand(size_t index, bool newState) { doesHandContainAce[index] = newState; }  
+	   
 	   void push_back(int N) { cards.push_back(N); }
 	   void insert_suits(char N) { suits.push_back(N); }  
 	   void insertHands(std::deque<int> hands) { splitHands.push_back(hands); } 
@@ -61,9 +62,12 @@ class Player {
 		 for (auto &hand : splitHands) {
 			 if (handIndex == i) {
 		  	 	hand.push_back(N);
-	 	    } 
+	 	    }
+			i++; 
 		  }
 	   }
+
+	   void replace(size_t index, int N) { cards.at(index) = N; }
 
 	   void ClearHand() { cards.clear(); }   
 

@@ -104,7 +104,7 @@ void Game::Deal(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
 		current_suit = suits.back();
 		deck.pop_back();
 		suits.pop_back();
-		if (current_card == 11) { //ace defaults to 11
+		if (current_card == ACE_11) { //ace defaults to 11
 				players[i]->SetAce(true); 
 				std::cout << "sending card to ace func\n";
 				current_card = DetermineAceHandValue(players, i);
@@ -178,15 +178,20 @@ void Game::Split(std::vector<std::shared_ptr<Player>> &players, std::deque<int> 
 			std::deque<int> firstHand, secondHand; 
 			int firstCard = players[index]->cardAt(0);
 			int secondCard = players[index]->cardAt(1);
+			std::string sendFirstCounter =  "{\"firstSplitCounter\":  " + std::to_string(firstCard) + "}";
+			GameWebSocketController::EventAPI(sendFirstCounter);
 			if (secondCard == 1) {
 			//this is 2nd ace, but in its own seperate hand it should count as 11
 			secondCard = 11;
+			//make the 2nd card of the original hand worth 11
+			players[index]->replace(1, 11);
+			std::string sendSecondCounter =  "{\"secondSplitCounter\": " + std::to_string(secondCard) + "}";
+			GameWebSocketController::EventAPI(sendSecondCounter);
 			}
 			firstHand.push_back(firstCard);
 			secondHand.push_back(secondCard);
 			players[index]->insertHands(firstHand);
 			players[index]->insertHands(secondHand);
-			players[index]->ClearHand(); // clear the original hand since its now split into 2
 			}
 	  	char firstSuit = players[index]->suitCardAt(0);
 	  	char nextSuit = suitDeck.back();
@@ -204,10 +209,13 @@ void Game::Split(std::vector<std::shared_ptr<Player>> &players, std::deque<int> 
 		GameWebSocketController::EventAPI(split);
 		if (action == "yes") {
 			    std::cout << "Create the split hand!\n";
+				players[index]->push_back(nextCard); //push next split card into the original
 				//if they do want to keep splitting run logic here
 				std::deque<int> newHand; //create the newHand and push into the vector of hands
 				newHand.push_back(nextCard);
 				players[index]->insertHands(newHand);	
+				std::string newSplitCounter =  "{\"newSplitCounter\": " + std::to_string(nextCard) + "}";
+			    GameWebSocketController::EventAPI(newSplitCounter);
 			}
 		}
 		//move on to next card and exit the loop if theres no more matching that qualifies for splitting
@@ -218,28 +226,35 @@ void Game::Split(std::vector<std::shared_ptr<Player>> &players, std::deque<int> 
 
 void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index) {
 	int currentHand = GetCurrentHand();
+	std::cout << "Current Hand: " << currentHand << std::endl;
 	auto &playerSplitHands = players[index]->GetSplitHands();
 	auto &hand = playerSplitHands[currentHand];
+	//print the hands
+		   for (int x : hand) {
+			std::cout << "Hand: " << currentHand << "| Current Card: " << x << std::endl;
+		   }
 		if (deck.empty()) {
 			std::cout << "Deck Is Empty: Time to reshuffle\n";
 			return;
 		}
 	   if (players[index]->didSplitHandBust(hand)) {
-		 std::cout << "Players Hand has busted" << std::endl;  
+		 std::cout << "Player Hand has busted" << std::endl;  
 			return;
 		}
-		//print the hands
-		   for (int x : hand) {
-			std::cout << "Hand: " << currentHand << "| Current Card: " << x << std::endl;
-		   }
 			int nextCard = deck.back();
 			deck.pop_back();
+			int firstCard = hand[0];
+			int currentCount = players[index]->GetMultiHandCount(hand);
 		//send the card to the front end
-		std::cout << "TELLING FRONT TO SPLIT HIT\n";
-		std::string splitHit = "{\"event\": \"splitHit\", \"handCount\": " + std::to_string(currentHand) + "}";
+		std::string splitHit = "{\"event\": \"splitHit\", \"currentHandCount\": " + std::to_string(currentCount) + ", \"currentHand\": " + std::to_string(currentHand) + ",\"firstCard\": " + std::to_string(firstCard) + "}";
 		GameWebSocketController::EventAPI(splitHit);
-		if (nextCard == 11) { 
+		if (firstCard == 11) { 
 				players[index]->SetAceHand(currentHand, true); 
+		}
+		if (nextCard == 11) {
+			if (!players[index]->GetAceHand(currentHand)) {
+				players[index]->SetAceHand(currentHand, true); 
+			}
 				nextCard = DetermineAceMultipleHandsValue(players, index, currentHand);
 		}
 		if (players[index]->GetAceHand(currentHand)) {
@@ -253,8 +268,75 @@ void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::
 			}
 		}
 		players[index]->insertIntoHand(nextCard, currentHand);
+		currentCount = players[index]->GetMultiHandCount(hand);
+		std::string updateCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(currentCount) + "}";
+		GameWebSocketController::EventAPI(updateCount);
+		for (int x : hand) { std::cout << "Hand: " << currentHand << "| Current Card: " << x << std::endl; }  
+		//this bust will run the hands are still active, 
+		if (players[index]->didSplitHandBust(hand)) {
+		 	std::cout << "Player Hand: " << currentHand << " has busted!" << std::endl;
+			std::string playerBust = "{\"event\": \"playerSplitBust\", \"hand\": " + std::to_string(currentHand) + "}";
+			GameWebSocketController::EventAPI(playerBust);
+			return;
+		}
 	}
 
+void Game::HandleSplitStand(std::vector<std::shared_ptr<Player>> &players, Game &game, Dealer &dealer, std::deque<int> &deck, int currentHand, int index) {
+	int finalHand = players[index]->GetSplitHands().size();
+	if (currentHand >= finalHand) {
+			int count = game.DealerStand(players, dealer, deck);
+	  		std::string animation = "{\"event\": \"dealerHit\", \"count\": " + std::to_string(count) + ", \"values\": [";
+			for (auto &x : dealer.GetSum()) {
+				std::cout << x << ", " << std::endl;
+			}
+			for (size_t i = 1; i < dealer.GetSum().size(); i++) {
+				animation += std::to_string(dealer.GetSum()[i]);
+				if (i < dealer.GetSum().size() - 1) {
+					animation += ",";
+				}
+			}
+			animation += "]}";
+			GameWebSocketController::EventAPI(animation);
+			SplitPlay(players, dealer, deck);
+	}
+}
+
+void Game::SplitPlay(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck) {
+	//will run after the entire players hands have been decided, so player cant bust here since they cant exceed more cards. The bust code happens in the HitMultipleFunctions 
+	int currentHand = 0;
+	int currentPlayer = 0;
+	for (auto& player : players) {
+			for (auto& hand : player->GetSplitHands()) {
+					int handCount = player->GetMultiHandCount(hand);
+				    bool hasHandBusted = player->didSplitHandBust(hand);   
+					if (hasHandBusted) continue;
+					//push
+					if (hasHandBusted == false and handCount == dealer.count()) {
+							std::string splitPush = "{\"event\": \"playerSplitPush\", \"handCount\": " + std::to_string(currentHand) + "}";
+							GameWebSocketController::EventAPI(splitPush);
+					}
+					//player Hand beats dealers
+					if ((hasHandBusted == false and handCount > dealer.count() and dealer.count () <= 21) or (dealer.count() > 21 and hasHandBusted == false)) {
+							int payout = player->GetWager() * 2;
+							int newBalance = player->GetBalance() + payout;
+							player->SetBalance(newBalance);
+							std::string splitPlayerWin = "{\"event\": \"playerSplitWin\", \"handCount\": " + std::to_string(currentHand) + ", \"updateBalance\": " + std::to_string(newBalance) + "}";
+							GameWebSocketController::EventAPI(splitPlayerWin);
+					}
+					//dealer beats player hand
+					if (hasHandBusted == false and  (handCount < dealer.count() and dealer.count() < 21)) {
+							int payLoss = player->GetWager() * 2;
+							int newBalance = player->GetBalance() - payLoss;
+							if (newBalance < 0) newBalance = 0;
+							player->SetBalance(newBalance);
+							std::string splitDealerWin = "{\"event\": \"dealerSplitWin\", \"handCount\": " + std::to_string(currentHand) + ", \"updateBalance\": " + std::to_string(newBalance) + "}";
+							GameWebSocketController::EventAPI(splitDealerWin);
+					}
+			}
+	 currentPlayer ++;
+	 currentHand ++;
+	}
+}
 
 void Game::Insurance(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer) {
 		if (dealer.firstCard() == 10) {

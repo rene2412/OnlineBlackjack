@@ -56,7 +56,9 @@ class Game {
 	void push_back(const Player &p); 
 	void Split(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, std::deque<char> &suitDeck, int index, std::string action);
 	void HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index);
+	void HandleSplitStand(std::vector<std::shared_ptr<Player>> &players, Game &game, Dealer &dealer, std::deque<int> &deck, int currentHand, int index);
 	void Shuffle();
+	void SplitPlay(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
 	void ResetHands(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer);
 	void Deal(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck, std::deque<char> &suits);
 	void PlayerHit(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index);

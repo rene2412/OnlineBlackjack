@@ -112,6 +112,11 @@ void GameController::Split(const drogon::HttpRequestPtr &req,
             std::cout << "HTTP Request: Ready to split\n";
             game.SetSplitState(true);
             game.SetOnDeal(true);
+            for (auto &player : game.GetPlayers()) { 
+                int firstCard = player->cardAt(0);
+                std::string playerCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(firstCard) + "}";
+                GameWebSocketController::EventAPI(playerCount); 
+            }
         }
         Json::Value result;
         result["message"] = "Successful Connection";
@@ -134,8 +139,8 @@ void GameController::SplitDecision(const drogon::HttpRequestPtr &req, std::funct
 
     std::string action = (*json)["action"].asString();
     int handIndex = (*json)["handIndex"].asInt();
-    std::cout << "MADE IT TO SPLIT DECISION HTTP\n";
     auto &game = Game::GetGameInstance();
+    auto &dealer = game.GetDealerInstance();
     auto &deck = game.GetDeckInstance();
     if (!game.GetSplitState()) {
         callback(drogon::HttpResponse::newHttpResponse());
@@ -143,14 +148,28 @@ void GameController::SplitDecision(const drogon::HttpRequestPtr &req, std::funct
     }
 
     if (action == "hit") {
-        std::cout << "Ready To HIT hand: " << game.GetCurrentHand() << std::endl;
+        //std::cout << "Ready To HIT hand: " << game.GetCurrentHand() << std::endl;
         game.Split(game.GetPlayers(), deck.GetDeck(), deck.GetSuitsDeck(), 0, action); 
-        std::cout << "Made it Past SPLIT\n";
         game.SetOnDeal(false);
     }
     else if (action == "stand") {
-        int nextHand = game.GetCurrentHand() + 1;
-        game.SetCurrentHand(nextHand);
+        //std::cout << "USER STANDS ON HAND: " << game.GetCurrentHand() << std::endl;
+        int currentPlayer = game.GetCurrentPlayer();
+        int currentHand = game.GetCurrentHand() + 1;
+        auto &players = game.GetPlayers(); 
+        int finalHand = players[currentPlayer]->GetSplitHands().size();
+        game.SetCurrentHand(currentHand);
+        //send the new count update
+        if (currentHand < finalHand) {
+            for (auto &player : game.GetPlayers()) { 
+                    int secondCard = player->cardAt(currentHand);
+                    std::string playerCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(secondCard) + "}";
+                    GameWebSocketController::EventAPI(playerCount); 
+                }
+        }
+        std::deque<int> &card_deck = deck.GetDeck();
+        std::cout << "HAND: " << currentHand << std::endl;
+        game.HandleSplitStand(game.GetPlayers(), game, dealer, card_deck, currentHand, currentPlayer);
     }
 
     Json::Value result;
