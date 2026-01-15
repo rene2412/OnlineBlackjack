@@ -20,7 +20,3 @@ This is a complete Blackjack game engine implemented entirely in C++. It support
 ## Demo
 Watch the gameplay: [YouTube Demo](https://www.youtube.com/@renehernandez6562)
 
-## Installation
-1. Clone the repository:
-```bash
-git clone https://github.com/rene2412/OnlineBlackjack.git
