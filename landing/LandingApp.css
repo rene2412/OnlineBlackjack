@@ -1,0 +1,81 @@
+/* Reset any browser gap */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: black;
+}
+
+/* Fullscreen container */
+.landing-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  overflow: hidden;
+}
+
+/* IMAGE FIT FIX */
+.landing-image {
+  position: absolute;
+
+  width: 100vw;
+  height: 100vh;
+
+  object-fit: cover;       /* 🔥 key for no white edges */
+  object-position: center;
+
+  filter: brightness(0.8); /* darker = more cinematic */
+}
+
+/* ===== PLAY NOW BUTTON ===== */
+
+.play-btn {
+  position: relative;
+  z-index: 10;
+
+  font-family: "Brush Script MT", "Lucida Handwriting", cursive;
+
+  font-size: clamp(28px, 6vw, 52px);
+  letter-spacing: 2px;
+
+  padding: 16px 48px;
+
+  color: #f5e6b3;          /* casino gold */
+  background: rgba(0, 0, 0, 0.6);
+
+  border: 2px solid #c9a227;
+  border-radius: 16px;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(4px);
+
+  transition: all 0.25s ease;
+  box-shadow:
+    0 0 10px #c9a227,
+    inset 0 0 8px #c9a227;
+}
+
+.play-btn:hover {
+  transform: scale(1.08);
+
+  box-shadow:
+    0 0 20px #ffd700,
+    inset 0 0 12px #ffd700;
+
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Mobile tweak */
+@media (max-width: 600px) {
+  .play-btn {
+    padding: 14px 32px;
+  }
+}

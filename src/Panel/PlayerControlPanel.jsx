@@ -8,8 +8,8 @@ export default function PlayerControlPanel({
   canSplit,
   isChoosingSplit,
   gameStart,
-  splitCounts = [], // for future split hand support
-  children, // will contain HitOrStand, Split, Insurance components
+  splitCounts = [],
+  children,
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -21,7 +21,7 @@ export default function PlayerControlPanel({
 
     const timer = setTimeout(() => {
       setVisible(true);
-    }, 3500); // 3500ms delay after game start
+    }, 3500);
 
     return () => clearTimeout(timer);
   }, [gameStart]);
@@ -39,19 +39,21 @@ export default function PlayerControlPanel({
 
       <div className="player-control-panel">
         <div className="player-count-section">
-          <div className="counter-box main-counter">
-            <div className="counter-label">Your Hand</div>
-            <div className="counter-value">{playerCount}</div>
-          </div>
-
-          {splitCounts.length > 0 && (
-            <div className="split-counters">
-              {splitCounts.map((count, index) => (
-                <div key={index} className="counter-box split-counter">
-                  <div className="counter-label">Hand {index + 2}</div>
-                  <div className="counter-value">{count}</div>
+          {splitCounts.length > 0 ? (
+            <div className="split-counters-container">
+              {splitCounts.map((counter, index) => (
+                <div key={index} className={`counter-box split-counter ${counter.status || ''}`}>
+                  <div className="counter-label">Hand {counter.hand + 1}</div>
+                  <div className="counter-value">{counter.count}</div>
+                  {counter.status === 'bust' && <div className="counter-overlay">✕</div>}
+                  {counter.status === 'win' && <div className="counter-overlay win">✓</div>}
                 </div>
               ))}
+            </div>
+          ) : (
+            <div className="counter-box main-counter">
+              <div className="counter-label">Your Hand</div>
+              <div className="counter-value">{playerCount}</div>
             </div>
           )}
         </div>

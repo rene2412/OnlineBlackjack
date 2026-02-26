@@ -178,14 +178,14 @@ void Game::Split(std::vector<std::shared_ptr<Player>> &players, std::deque<int> 
 			std::deque<int> firstHand, secondHand; 
 			int firstCard = players[index]->cardAt(0);
 			int secondCard = players[index]->cardAt(1);
-			std::string sendFirstCounter =  "{\"firstSplitCounter\":  " + std::to_string(firstCard) + "}";
+			std::string sendFirstCounter =  "{\"event\": \"firstSplitCounter\",  \"count\": " + std::to_string(firstCard) + "}";
 			GameWebSocketController::EventAPI(sendFirstCounter);
 			if (secondCard == 1) {
 			//this is 2nd ace, but in its own seperate hand it should count as 11
 			secondCard = 11;
 			//make the 2nd card of the original hand worth 11
 			players[index]->replace(1, 11);
-			std::string sendSecondCounter =  "{\"secondSplitCounter\": " + std::to_string(secondCard) + "}";
+			std::string sendSecondCounter =  "{\"event\": \"secondSplitCounter\", \"count\": " + std::to_string(secondCard) + "}";
 			GameWebSocketController::EventAPI(sendSecondCounter);
 			}
 			firstHand.push_back(firstCard);
@@ -229,11 +229,9 @@ void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::
 	std::cout << "Current Hand: " << currentHand << std::endl;
 	auto &playerSplitHands = players[index]->GetSplitHands();
 	auto &hand = playerSplitHands[currentHand];
-	//print the hands
-		   for (int x : hand) {
-			std::cout << "Hand: " << currentHand << "| Current Card: " << x << std::endl;
-		   }
-		if (deck.empty()) {
+	for (int x : hand) { std::cout << "Hand: " << currentHand << "| Current Card: " << x << std::endl; }  
+		
+	if (deck.empty()) {
 			std::cout << "Deck Is Empty: Time to reshuffle\n";
 			return;
 		}
@@ -245,9 +243,6 @@ void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::
 			deck.pop_back();
 			int firstCard = hand[0];
 			int currentCount = players[index]->GetMultiHandCount(hand);
-		//send the card to the front end
-		std::string splitHit = "{\"event\": \"splitHit\", \"currentHandCount\": " + std::to_string(currentCount) + ", \"currentHand\": " + std::to_string(currentHand) + ",\"firstCard\": " + std::to_string(firstCard) + "}";
-		GameWebSocketController::EventAPI(splitHit);
 		if (firstCard == 11) { 
 				players[index]->SetAceHand(currentHand, true); 
 		}
@@ -269,8 +264,10 @@ void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::
 		}
 		players[index]->insertIntoHand(nextCard, currentHand);
 		currentCount = players[index]->GetMultiHandCount(hand);
-		std::string updateCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(currentCount) + "}";
-		GameWebSocketController::EventAPI(updateCount);
+		std::cout << "Current Count: " << currentCount << std::endl;
+		std::cout << "Sending API to hit at front\n";
+		std::string splitHit = "{\"event\": \"splitHit\", \"currentHandCount\": " + std::to_string(currentCount) + ", \"currentHand\": " + std::to_string(currentHand) + ",\"firstCard\": " + std::to_string(firstCard) + "}";
+		GameWebSocketController::EventAPI(splitHit);
 		for (int x : hand) { std::cout << "Hand: " << currentHand << "| Current Card: " << x << std::endl; }  
 		//this bust will run the hands are still active, 
 		if (players[index]->didSplitHandBust(hand)) {
