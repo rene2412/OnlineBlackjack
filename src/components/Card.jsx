@@ -8,45 +8,46 @@ function rankDisplay(value) {
   if (!value)                      return "";
   return String(value);
 }
+/**
+ * Card.jsx
+ * Props:
+ *   rank    {string}  — "A","2"–"10","J","Q","K"
+ *   suit    {string}  — "H"|"D"|"C"|"S"
+ *   color   {string}  — "red"|"black"
+ *   symbol  {string}  — "♥"|"♦"|"♣"|"♠"
+ *   hidden  {boolean} — show card back
+ *   dealing {boolean} — play deal animation
+ *   delay   {number}  — animation delay ms
+ *   dimmed  {boolean} — grey out (loss state)
+ */
+export default function Card({
+  rank, suit, color="black", symbol="♠",
+  hidden=false, dealing=false, delay=0, dimmed=false
+}) {
+  const style = dealing ? { animationDelay: `${delay}ms` } : undefined;
 
-export default function Card({ value, suit, hidden = false, dealing = false, delay = 0, dimmed = false }) {
   if (hidden) {
-    return (
-      <div
-        className="card card--back"
-        style={dealing ? { animationDelay: `${delay}ms` } : undefined}
-        data-dealing={dealing || undefined}
-      />
-    );
+    return <div className="card card--back card--deal" style={style} />;
   }
-
-  const suitSym = SUIT_SYMBOLS[suit] || "♠";
-  const rank    = rankDisplay(value);
-  const isRed   = suit ? RED_SUITS.has(suit) : false;
 
   return (
     <div
       className={[
         "card",
-        isRed   ? "card--red"   : "card--black",
-        dealing ? "card--deal"  : "",
-        dimmed  ? "card--dimmed": "",
+        color === "red" ? "card--red" : "card--black",
+        dealing  ? "card--deal"   : "",
+        dimmed   ? "card--dimmed" : "",
       ].filter(Boolean).join(" ")}
-      style={dealing ? { animationDelay: `${delay}ms` } : undefined}
+      style={style}
     >
-      {/* Top-left corner */}
       <div className="card__corner card__corner--tl">
         <span className="card__rank">{rank}</span>
-        <span className="card__suit-sm">{suitSym}</span>
+        <span className="card__suit-sm">{symbol}</span>
       </div>
-
-      {/* Center pip */}
-      <div className="card__center">{suitSym}</div>
-
-      {/* Bottom-right corner (rotated) */}
+      <div className="card__center">{symbol}</div>
       <div className="card__corner card__corner--br">
         <span className="card__rank">{rank}</span>
-        <span className="card__suit-sm">{suitSym}</span>
+        <span className="card__suit-sm">{symbol}</span>
       </div>
     </div>
   );

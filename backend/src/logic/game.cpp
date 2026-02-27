@@ -478,6 +478,8 @@ void Game::Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
 						std::string playerBust = "{\"event\": \"playerBust\", \"playerName\": \"" + players[index]->GetName() + "\"}";
 						std::cout << "PlayerBust API: " << playerBust << std::endl;
 						GameWebSocketController::EventAPI(playerBust);
+						players[index]->ClearHand();
+						dealer.ClearHand();
 						return;
 			}
 			if (dealer.count() > 21) {

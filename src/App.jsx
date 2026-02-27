@@ -1,4 +1,4 @@
-import React, { useReducer, useCallback, useRef } from "react";
+import React, { useEffect, useState, useReducer, useCallback, useRef } from "react";
 import { gameReducer, initialState } from "./store/gameStore";
 import useGameSocket from "./hooks/useGameSocket";
 import useGameApi    from "./hooks/useGameApi";
@@ -10,282 +10,214 @@ import Modal         from "./components/Modal";
 import ResultBanner  from "./components/ResultBanner";
 import Toasts, { useToasts } from "./components/Toasts";
 
-const DEAL_INTERVAL = 340; // ms between each card sliding in
+const DEAL_INTERVAL  = 340;
+const SWEEP_DELAY    = 800;   // ms after outcome before cards sweep off
+const SWEEP_DURATION = 600;   // ms for sweep animation
 
 export default function App() {
-  const [state, dispatch] = useReducer(gameReducer, initialState);
-  const api  = useGameApi();
+  const [state, dispatch]    = useReducer(gameReducer, initialState);
+  const stateRef             = useRef(state);
+  const api                  = useGameApi();
   const { toasts, addToast } = useToasts();
-  const timersRef = useRef([]);
+  const addToastRef          = useRef(addToast);
+  const timersRef            = useRef([]);
+  const isDealingRef         = useRef(false);
+  const wsQueueRef           = useRef([]);
 
-  // ═══════════════════════════════════════════════════════
-  //  WEBSOCKET EVENTS
-  // ═══════════════════════════════════════════════════════
-  const handleMessage = useCallback((msg) => {
+  // sweeping = cards flying off after outcome
+  const [sweeping, setSweeping] = useState(false);
+
+  useEffect(() => { stateRef.current = state; },       [state]);
+  useEffect(() => { addToastRef.current = addToast; }, [addToast]);
+
+  // ─── Trigger sweep then move to result phase ─────────────────────
+  function triggerSweep(outcomePayload) {
+    dispatch({ type: "SET_OUTCOME_PENDING", payload: outcomePayload });
+    // Short delay so bust card animates in first
+    const t1 = setTimeout(() => {
+      setSweeping(true);
+      const t2 = setTimeout(() => {
+        setSweeping(false);
+        dispatch({ type: "COMMIT_OUTCOME" });
+      }, SWEEP_DURATION + 100);
+      timersRef.current.push(t2);
+    }, SWEEP_DELAY);
+    timersRef.current.push(t1);
+  }
+
+  // ═══════════════════════════════════════════
+  //  WS EVENT PROCESSOR
+  // ═══════════════════════════════════════════
+  const processEvent = useCallback((msg) => {
+    const s     = stateRef.current;
+    const toast = addToastRef.current;
+
     switch (msg.event) {
+      case "__connected":    dispatch({ type:"SET_CONNECTED", payload:true  }); break;
+      case "__disconnected": dispatch({ type:"SET_CONNECTED", payload:false }); break;
 
-      case "__connected":
-        dispatch({ type: "SET_CONNECTED", payload: true });
-        break;
-
-      case "__disconnected":
-        dispatch({ type: "SET_CONNECTED", payload: false });
-        break;
-
-      // Player count updated (after deal or hit)
       case "updateCount":
-        dispatch({ type: "UPDATE_PLAYER_COUNT", payload: msg.count });
+        dispatch({ type:"UPDATE_PLAYER_COUNT", payload:msg.count });
         break;
 
-      // Dealer's visible card count on reconnect
       case "updateDealerCount":
-        dispatch({ type: "UPDATE_DEALER_COUNT", payload: msg.count });
+        dispatch({ type:"UPDATE_DEALER_COUNT", payload:msg.count });
         break;
 
-      // Player hit — add card to hand, unlock buttons
       case "hit":
-        dispatch({ type: "DEAL_PLAYER_CARD", payload: { value: null, suit: null, hidden: false } });
-        dispatch({ type: "UNLOCK_ACTIONS" });
+        dispatch({ type:"HIT_PLAYER_FROM_SHOE" });
         break;
 
-      // Dealer reveals + draws after player stands
       case "dealerHit": {
-        dispatch({ type: "REVEAL_DEALER_CARD", payload: { index: 1, value: state.dealerCount } });
-        (msg.values || []).forEach((v, i) => {
-          const t = setTimeout(() => {
-            dispatch({ type: "ADD_DEALER_CARD", payload: { value: v, suit: null, hidden: false } });
-          }, (i + 1) * 420);
+        dispatch({ type:"REVEAL_DEALER_HOLE" });
+        (msg.values||[]).forEach((v,i) => {
+          const t = setTimeout(() => dispatch({ type:"ADD_DEALER_CARD", payload:{value:v} }), (i+1)*420);
           timersRef.current.push(t);
         });
-        const newTotal = (msg.values || []).reduce((s, v) => s + v, state.dealerCount);
-        const t = setTimeout(() => {
-          dispatch({ type: "UPDATE_DEALER_COUNT", payload: newTotal });
-        }, ((msg.values || []).length + 1) * 420);
+        const newTotal = (msg.values||[]).reduce((a,v)=>a+v, s.dealerCount);
+        const t = setTimeout(() => dispatch({ type:"UPDATE_DEALER_COUNT", payload:newTotal }),
+          ((msg.values||[]).length+1)*420);
         timersRef.current.push(t);
         break;
       }
 
-      // ── Outcomes ────────────────────────────────────────
-      case "playerBust":
-        dispatch({ type: "SET_OUTCOME", payload: {
-          outcome: "bust", text: "BUST",
-          newBalance: state.balance - state.wager,
-        }});
-        addToast(`${msg.playerName || "You"} busted!`, "bust");
-        break;
-
-      case "dealerBust":
-        dispatch({ type: "SET_OUTCOME", payload: {
-          outcome: "win", text: "DEALER BUSTS!",
-          newBalance: state.balance + state.wager,
-        }});
-        addToast("Dealer busted — you win!", "win");
-        break;
-
-      case "playerWin":
-        dispatch({ type: "SET_OUTCOME", payload: {
-          outcome: "win", text: "YOU WIN!",
-          newBalance: state.balance + state.wager,
-        }});
-        addToast(`+$${state.wager}`, "win");
-        break;
-
-      case "dealerWin":
-        dispatch({ type: "SET_OUTCOME", payload: {
-          outcome: "bust", text: "DEALER WINS",
-          newBalance: state.balance - state.wager,
-        }});
-        addToast(`-$${state.wager}`, "bust");
-        break;
-
-      case "push":
-        dispatch({ type: "SET_OUTCOME", payload: { outcome: "push", text: "PUSH" } });
-        addToast("Push — bet returned", "push");
-        break;
-
-      // ── Prompts — only fire if cards are already dealt ──
-      // (dealt flag in reducer gates these)
-      case "playerInsuranceChoice":
-        dispatch({ type: "SHOW_INSURANCE" });
-        break;
-
-      case "playerSplitChoice":
-        dispatch({ type: "SHOW_SPLIT_PROMPT" });
-        break;
-
-      // ── Split setup ────────────────────────────────────
-      case "firstSplitCounter":
-        dispatch({ type: "UPDATE_PLAYER_COUNT", payload: msg.count });
-        break;
-
-      case "secondSplitCounter":
-        dispatch({ type: "INIT_SPLIT", payload: {
-          counts: [state.playerCount, msg.count],
-        }});
-        break;
-
-      case "newSplitCounter": {
-        const existing = state.splitHands.map(h => h.count);
-        dispatch({ type: "INIT_SPLIT", payload: { counts: [...existing, msg.count] } });
+      // Player busts — deal the card first, THEN sweep after it lands
+      case "playerBust": {
+        dispatch({ type:"HIT_PLAYER_FROM_SHOE" }); // bust card comes out
+        const payload = { outcome:"bust", text:"BUST", newBalance: s.balance - s.wager };
+        toast(`${msg.playerName||"You"} busted!`, "bust");
+        triggerSweep(payload);
         break;
       }
 
-      case "splitHit":
-        dispatch({ type: "SPLIT_HIT_HAND", payload: {
-          handIndex: msg.currentHand,
-          count: msg.currentHandCount,
-        }});
+      case "dealerBust": {
+        const payload = { outcome:"win", text:"DEALER BUSTS!", newBalance: s.balance + s.wager };
+        toast("Dealer busted — you win!", "win");
+        triggerSweep(payload);
         break;
+      }
 
-      case "playerSplitBust":
-        dispatch({ type: "SPLIT_BUST_HAND", payload: msg.hand });
-        addToast(`Hand ${msg.hand + 1} busted`, "bust");
+      case "playerWin": {
+        const payload = { outcome:"win", text:"YOU WIN!", newBalance: s.balance + s.wager };
+        toast(`+$${s.wager}`, "win");
+        triggerSweep(payload);
         break;
+      }
 
-      case "playerSplitWin":
-        dispatch({ type: "SPLIT_RESOLVE_HAND", payload: {
-          handIndex: msg.handCount, won: true, newBalance: msg.updateBalance,
-        }});
-        addToast(`Hand ${msg.handCount + 1} wins!`, "win");
+      case "dealerWin": {
+        const payload = { outcome:"bust", text:"DEALER WINS", newBalance: s.balance - s.wager };
+        toast(`-$${s.wager}`, "bust");
+        triggerSweep(payload);
         break;
+      }
 
-      case "dealerSplitWin":
-        dispatch({ type: "SPLIT_RESOLVE_HAND", payload: {
-          handIndex: msg.handCount, won: false, newBalance: msg.updateBalance,
-        }});
-        addToast(`Dealer wins hand ${msg.handCount + 1}`, "bust");
+      case "push": {
+        const payload = { outcome:"push", text:"PUSH" };
+        toast("Push — bet returned", "push");
+        triggerSweep(payload);
         break;
+      }
 
-      case "playerSplitPush":
-        dispatch({ type: "SPLIT_RESOLVE_HAND", payload: {
-          handIndex: msg.handCount, won: null, newBalance: state.balance,
-        }});
-        addToast(`Hand ${msg.handCount + 1} — push`, "push");
-        break;
+      case "playerInsuranceChoice": dispatch({ type:"SHOW_INSURANCE"   }); break;
+      case "playerSplitChoice":     dispatch({ type:"SHOW_SPLIT_PROMPT"}); break;
 
-      default:
-        break;
+      case "firstSplitCounter":  dispatch({ type:"UPDATE_PLAYER_COUNT", payload:msg.count }); break;
+      case "secondSplitCounter": dispatch({ type:"INIT_SPLIT", payload:{counts:[s.playerCount,msg.count]}}); break;
+      case "newSplitCounter": {
+        const ex = s.splitHands.map(h=>h.count);
+        dispatch({ type:"INIT_SPLIT", payload:{counts:[...ex,msg.count]}}); break;
+      }
+      case "splitHit":        dispatch({ type:"SPLIT_HIT_HAND",    payload:{handIndex:msg.currentHand,count:msg.currentHandCount}}); break;
+      case "playerSplitBust": dispatch({ type:"SPLIT_BUST_HAND",   payload:msg.hand }); toast(`Hand ${msg.hand+1} busted`,"bust"); break;
+      case "playerSplitWin":  dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount,won:true, newBalance:msg.updateBalance}}); toast(`Hand ${msg.handCount+1} wins!`,"win"); break;
+      case "dealerSplitWin":  dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount,won:false,newBalance:msg.updateBalance}}); toast(`Dealer wins hand ${msg.handCount+1}`,"bust"); break;
+      case "playerSplitPush": dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount,won:null, newBalance:s.balance}}); toast(`Hand ${msg.handCount+1} — push`,"push"); break;
+      default: break;
     }
-  }, [state.balance, state.wager, state.dealerCount, state.playerCount, state.splitHands, addToast]);
+  }, []);
+
+  const handleMessage = useCallback((msg) => {
+    if (isDealingRef.current) wsQueueRef.current.push(msg);
+    else processEvent(msg);
+  }, [processEvent]);
 
   useGameSocket(handleMessage);
 
-  // ═══════════════════════════════════════════════════════
-  //  DEAL FLOW
-  //  1. Confirm wager → POST /api/wager
-  //  2. Generate shoe → POST /api/shuffle  (backend deals cards + fires WS)
-  //  3. Animate 4 cards onto table
-  //  4. Mark as dealt → unlock action buttons
-  // ═══════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════
+  //  DEAL
+  // ═══════════════════════════════════════════
   async function handleDeal() {
-    if (state.stagedWager <= 0) { addToast("Place a wager first!", ""); return; }
+    if (state.stagedWager <= 0) { addToast("Place a wager first!",""); return; }
 
-    dispatch({ type: "CONFIRM_WAGER" });
-    dispatch({ type: "START_ROUND" });
+    const shoe   = generateShoe(6);
+    const parsed = shoe.map(parseCard);
 
-    // Step 1 — send wager
-    try {
-      await api.sendWager(state.stagedWager);
-    } catch {
-      addToast("Server error on wager", "bust");
-      dispatch({ type: "SET_PHASE", payload: "wager" });
-      return;
-    }
+    dispatch({ type:"CONFIRM_WAGER" });
+    dispatch({ type:"SET_SHOE",    payload:parsed });
+    dispatch({ type:"START_ROUND" });
 
-    // Step 2 — generate shuffled shoe and send to backend
-    // Backend's /api/shuffle deals the cards and fires WS events
-    const shoe = generateShoe(6);
-    try {
-      await api.sendShuffle(shoe);
-    } catch {
-      addToast("Server error on shuffle", "bust");
-      dispatch({ type: "SET_PHASE", payload: "wager" });
-      return;
-    }
-
-    // Step 3 — animate cards onto table
-    // Authentic casino deal order:
-    //   Dealer face-up → Player card 1 → Dealer face-DOWN → Player card 2
+    isDealingRef.current = true;
+    wsQueueRef.current   = [];
     timersRef.current.forEach(clearTimeout);
     timersRef.current = [];
 
-    const dealOrder = [
-      { who: "dealer", hidden: false },
-      { who: "player", hidden: false },
-      { who: "dealer", hidden: true  },  // ← dealer hole card (face down)
-      { who: "player", hidden: false },
-    ];
+    try {
+      await api.sendWager(state.stagedWager);
+      await api.sendShuffle(shoe);
+    } catch {
+      addToast("Server error — is the backend running?","bust");
+      isDealingRef.current = false;
+      dispatch({ type:"SET_PHASE", payload:"wager" });
+      return;
+    }
 
-    dealOrder.forEach(({ who, hidden }, i) => {
-      const t = setTimeout(() => {
-        const action = who === "dealer" ? "DEAL_DEALER_CARD" : "DEAL_PLAYER_CARD";
-        dispatch({ type: action, payload: { value: null, suit: null, hidden } });
-      }, i * DEAL_INTERVAL);
+    const steps = [
+      "DEAL_DEALER_CARD_FROM_SHOE",
+      "DEAL_PLAYER_CARD_FROM_SHOE",
+      "DEAL_DEALER_HOLE_FROM_SHOE",
+      "DEAL_PLAYER_CARD_FROM_SHOE",
+    ];
+    steps.forEach((action,i) => {
+      const t = setTimeout(() => dispatch({ type:action }), i * DEAL_INTERVAL);
       timersRef.current.push(t);
     });
 
-    // Step 4 — after all 4 cards are on the table, mark dealt & unlock
-    const doneTimer = setTimeout(() => {
-      dispatch({ type: "DEAL_COMPLETE" });
-    }, dealOrder.length * DEAL_INTERVAL + 200);
-    timersRef.current.push(doneTimer);
+    const flush = setTimeout(() => {
+      isDealingRef.current = false;
+      dispatch({ type:"DEAL_COMPLETE" });
+      const q = [...wsQueueRef.current];
+      wsQueueRef.current = [];
+      q.forEach(msg => processEvent(msg));
+    }, steps.length * DEAL_INTERVAL + 400);
+    timersRef.current.push(flush);
   }
 
   async function handleHit() {
-    dispatch({ type: "LOCK_ACTIONS" });
-    try { await api.sendDecision("hit"); }
-    catch { dispatch({ type: "UNLOCK_ACTIONS" }); }
+    dispatch({ type:"LOCK_ACTIONS" });
+    try { await api.sendDecision("hit"); } catch { dispatch({ type:"UNLOCK_ACTIONS" }); }
   }
-
   async function handleStand() {
-    dispatch({ type: "LOCK_ACTIONS" });
-    try { await api.sendDecision("stand"); }
-    catch { dispatch({ type: "UNLOCK_ACTIONS" }); }
+    dispatch({ type:"LOCK_ACTIONS" });
+    try { await api.sendDecision("stand"); } catch { dispatch({ type:"UNLOCK_ACTIONS" }); }
   }
-
   async function handleDouble() {
     const doubled = state.wager * 2;
-    if (doubled > state.balance) { addToast("Can't afford double!", "bust"); return; }
-    dispatch({ type: "LOCK_ACTIONS" });
-    try {
-      await api.sendWager(doubled);
-      dispatch({ type: "CONFIRM_WAGER" });
-      await api.sendDecision("stand");
-    } catch { dispatch({ type: "UNLOCK_ACTIONS" }); }
+    if (doubled > state.balance) { addToast("Can't afford double!","bust"); return; }
+    dispatch({ type:"LOCK_ACTIONS" });
+    try { await api.sendWager(doubled); dispatch({ type:"CONFIRM_WAGER" }); await api.sendDecision("stand"); }
+    catch { dispatch({ type:"UNLOCK_ACTIONS" }); }
   }
-
   async function handleInsurance(yes) {
-    dispatch({ type: "HIDE_INSURANCE" });
-    await api.sendInsurance(yes ? "yes" : "no");
+    dispatch({ type:"HIDE_INSURANCE" });
+    await api.sendInsurance(yes?"yes":"no");
   }
-
   async function handleSplit(yes) {
-    dispatch({ type: "HIDE_SPLIT_PROMPT" });
+    dispatch({ type:"HIDE_SPLIT_PROMPT" });
     if (yes) await api.sendSplit(true);
   }
-
   async function handleSplitDecision(action) {
-    dispatch({ type: "LOCK_ACTIONS" });
+    dispatch({ type:"LOCK_ACTIONS" });
     await api.sendSplitDecision(action, state.currentSplitHand);
-  }
-
-  // ═══════════════════════════════════════════════════════
-  //  RENDER HELPERS
-  // ═══════════════════════════════════════════════════════
-
-  // Render a card — value from WS count events gets mapped onto placeholder cards
-  function renderCard(card, i, opts = {}) {
-    return (
-      <Card
-        key={i}
-        value={card.value}
-        suit={card.suit}
-        hidden={card.hidden}
-        dealing
-        delay={i * 80}
-        dimmed={opts.dimmed}
-      />
-    );
   }
 
   const {
@@ -296,11 +228,14 @@ export default function App() {
     actionsLocked, connected,
   } = state;
 
-  const betAmount = phase === "wager" ? stagedWager : wager;
+  const betAmount  = phase === "wager" ? stagedWager : wager;
+  const isPlaying  = phase === "playing";
+  const isWagering = phase === "wager";
+  const isDealing  = phase === "dealing";
+  const isResult   = phase === "result";
 
   return (
     <>
-      {/* ── Connection screen ── */}
       {!connected && (
         <div className="conn-overlay">
           <div className="conn-inner">
@@ -316,93 +251,105 @@ export default function App() {
       <Toasts toasts={toasts} />
       <ResultBanner text={resultText} type={outcome} />
 
-      {/* Insurance only after cards dealt */}
-      <Modal
-        open={showInsurance}
-        suit="♠" title="Insurance?"
+      <Modal open={showInsurance} suit="♠" title="Insurance?"
         body="Dealer is showing an Ace. Take insurance for half your wager?"
         yesLabel="Take Insurance" noLabel="Decline"
-        onYes={() => handleInsurance(true)}
-        onNo={() => handleInsurance(false)}
-      />
+        onYes={() => handleInsurance(true)} onNo={() => handleInsurance(false)} />
 
-      {/* Split only after cards dealt */}
-      <Modal
-        open={showSplitPrompt}
-        suit="♣" title="Split Hand?"
+      <Modal open={showSplitPrompt} suit="♣" title="Split Hand?"
         body="You've been dealt a matching pair. Split into two hands?"
         yesLabel="Split" noLabel="Stay"
-        onYes={() => handleSplit(true)}
-        onNo={() => handleSplit(false)}
-      />
+        onYes={() => handleSplit(true)} onNo={() => handleSplit(false)} />
 
       <div className="room">
         <div className="ceiling-light" />
 
+        {/* ════ TABLE ════ */}
         <div className="table-wrap">
           <div className="table-rail">
             <div className="table-surface">
 
-              <div className="felt-rules">
-                <span>BLACKJACK PAYS 3 TO 2</span>
-                <span className="felt-dot">♦</span>
-                <span>DEALER MUST STAND ON ALL 17s</span>
-                <span className="felt-dot">♦</span>
-                <span>INSURANCE PAYS 2 TO 1</span>
-              </div>
-
-              {/* ── DEALER ── */}
-              <section className="zone">
-                <span className="zone-label">D E A L E R</span>
-                <div className="hand-area">
-                  {dealerHand.map((card, i) => renderCard(card, i, {
-                    dimmed: outcome === "win"
-                  }))}
+              {/* ── DEALER ZONE ── */}
+              <section className="zone zone--dealer">
+                {/* Count badge pinned to left, slides in after deal */}
+                <div className={["zone-count-left", state.dealt && dealerCount > 0 ? "zone-count-left--visible" : ""].filter(Boolean).join(" ")}
+                     style={{ opacity: state.dealt && dealerCount > 0 ? 1 : 0 }}>
+                  {dealerCount > 0 && (
+                    <CountRing count={isPlaying ? "?" : dealerCount} />
+                  )}
                 </div>
-                <CountRing count={dealerCount} hidden={phase === "playing"} />
+                <span className="zone-label">D E A L E R</span>
+                <div className={["hand-area", sweeping ? "hand-area--sweep-up" : ""].filter(Boolean).join(" ")}>
+                  {dealerHand.map((card,i) => (
+                    <Card key={i} rank={card.rank} suit={card.suit}
+                      color={card.color} symbol={card.symbol}
+                      hidden={card.hidden} dealing delay={i*80}
+                      dimmed={outcome==="win"} />
+                  ))}
+                </div>
               </section>
+
+              {/* Felt rules — curved along the arc, above the gold line */}
+              <svg className="felt-rules-svg" viewBox="0 0 700 44" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <path id="feltCurve" d="M 40,38 Q 350,4 660,38" />
+                </defs>
+                <text className="felt-rules-text">
+                  <textPath href="#feltCurve" startOffset="50%" textAnchor="middle">
+                    BLACKJACK PAYS 3 TO 2  ♦  DEALER MUST STAND ON 17  ♦  INSURANCE PAYS 2 TO 1
+                  </textPath>
+                </text>
+              </svg>
 
               <div className="table-arc">
                 <svg viewBox="0 0 800 30" preserveAspectRatio="none">
-                  <path d="M0,30 Q400,0 800,30" fill="none" stroke="rgba(201,168,76,0.2)" strokeWidth="1.5" />
+                  <path d="M0,30 Q400,0 800,30" fill="none" stroke="rgba(201,168,76,0.2)" strokeWidth="1.5"/>
                 </svg>
               </div>
 
-              {/* ── PLAYER ── */}
-              <section className="zone">
+              {/* ── PLAYER ZONE ── */}
+              <section className="zone zone--player">
+                {/* Count badge pinned to left, slides in after deal */}
+                <div className={["zone-count-left", state.dealt && playerCount > 0 && !splitMode ? "zone-count-left--visible" : ""].filter(Boolean).join(" ")}
+                     style={{ opacity: state.dealt && playerCount > 0 && !splitMode ? 1 : 0 }}>
+                  {playerCount > 0 && !splitMode && (
+                    <CountRing count={playerCount} />
+                  )}
+                </div>
                 <span className="zone-label">
                   {splitMode ? "S P L I T   H A N D S" : "Y O U R   H A N D"}
                 </span>
 
                 {!splitMode && (
-                  <>
-                    <div className={[
-                      "hand-area",
-                      outcome === "win"  ? "hand-area--winner" : "",
-                      outcome === "bust" ? "hand-area--loser"  : "",
-                    ].filter(Boolean).join(" ")}>
-                      {playerHand.map((card, i) => renderCard(card, i, {
-                        dimmed: outcome === "bust"
-                      }))}
-                    </div>
-                    <CountRing count={playerCount} />
-                  </>
+                  <div className={["hand-area",
+                    outcome==="win"  ? "hand-area--winner" : "",
+                    outcome==="bust" ? "hand-area--loser"  : "",
+                    sweeping         ? "hand-area--sweep-down" : "",
+                  ].filter(Boolean).join(" ")}>
+                    {playerHand.map((card,i) => (
+                      <Card key={i} rank={card.rank} suit={card.suit}
+                        color={card.color} symbol={card.symbol}
+                        hidden={card.hidden} dealing delay={i*80}
+                        dimmed={outcome==="bust"} />
+                    ))}
+                  </div>
                 )}
 
                 {splitMode && (
-                  <div className="split-row">
-                    {splitHands.map((hand, idx) => (
-                      <div key={idx} className={[
-                        "split-hand-block",
-                        idx === currentSplitHand ? "split-hand-block--active" : "",
+                  <div className={["split-row", sweeping ? "hand-area--sweep-down" : ""].filter(Boolean).join(" ")}>
+                    {splitHands.map((hand,idx) => (
+                      <div key={idx} className={["split-hand-block",
+                        idx===currentSplitHand?"split-hand-block--active":"",
                       ].join(" ")}>
-                        <div className="split-hand-title">Hand {idx + 1}</div>
-                        <div className={[
-                          "hand-area",
-                          hand.busted       ? "hand-area--loser"  : "",
-                          hand.won === true ? "hand-area--winner" : "",
+                        <div className="split-hand-title">Hand {idx+1}</div>
+                        <div className={["hand-area",
+                          hand.busted    ?"hand-area--loser" :"",
+                          hand.won===true?"hand-area--winner":"",
                         ].filter(Boolean).join(" ")}>
-                          {hand.cards.map((card, ci) => renderCard(card, ci))}
+                          {hand.cards.map((c,ci) => (
+                            <Card key={ci} rank={c.rank} suit={c.suit}
+                              color={c.color} symbol={c.symbol} dealing delay={ci*100} />
+                          ))}
                         </div>
                         <CountRing count={hand.count} />
                       </div>
@@ -411,112 +358,101 @@ export default function App() {
                 )}
               </section>
 
-              {/* Betting circle */}
+              {/* Betting circle — only visible during wager phase */}
+              {isWagering && (
               <div className="bet-circle-wrap">
-                <div className={["bet-circle", betAmount > 0 ? "bet-circle--active" : ""].join(" ")}>
+                <div className={["bet-circle", betAmount>0?"bet-circle--active":""].join(" ")}>
                   <span className="bet-circle__label">BET</span>
                   <span className="bet-circle__amount">${betAmount}</span>
                 </div>
               </div>
+              )}
 
-            </div>
-          </div>
-        </div>
+            </div>{/* /table-surface */}
+          </div>{/* /table-rail */}
+        </div>{/* /table-wrap */}
 
-        {/* ── HUD ── */}
+        {/* ════ HUD ════ */}
         <div className="hud">
+
+          {/* Stats bar */}
           <div className="hud-stats">
             <div className="hud-stat">
               <span className="hud-label">Balance</span>
               <span className="hud-val">${balance.toLocaleString()}</span>
             </div>
+
             <div className="hud-stat hud-stat--center">
               <span className="hud-label">
-                {phase === "wager"   ? "Place Your Wager"  :
-                 phase === "dealing" ? "Dealing…"          :
-                 phase === "playing" ? "Your Turn"         : "Round Over"}
+                {isWagering?"Place Your Wager":isDealing?"Dealing…":isPlaying?"Your Turn":"Round Over"}
               </span>
-              <div className="ws-indicator">
-                <div className={`ws-dot ${connected ? "" : "ws-dot--off"}`} />
-                <span className="ws-label">{connected ? "Live" : "Reconnecting…"}</span>
-              </div>
+              {(isPlaying||isDealing||isResult) && betAmount > 0 && (
+                <div className="hud-wager-pill">
+                  <span className="hud-wager-pill__label">Wager</span>
+                  <span>${betAmount.toLocaleString()}</span>
+                </div>
+              )}
             </div>
+
             <div className="hud-stat hud-stat--right">
-              <span className="hud-label">Wager</span>
-              <span className="hud-val">${betAmount.toLocaleString()}</span>
+              <span className="hud-label">Game</span>
+              <span className="hud-val">#{state.round}</span>
             </div>
           </div>
 
-          {/* WAGER PHASE */}
-          {phase === "wager" && (
-            <>
-              <div className="chip-tray">
-                {[5, 25, 50, 100, 500].map((v) => (
-                  <Chip
-                    key={v} value={v}
-                    disabled={stagedWager + v > balance}
-                    onClick={() => dispatch({ type: "ADD_CHIP", payload: v })}
-                  />
-                ))}
-              </div>
-              <div className="wager-row">
-                <button
-                  className="btn btn--ghost"
-                  onClick={() => dispatch({ type: "CLEAR_WAGER" })}
-                  disabled={stagedWager === 0}
-                >
-                  Clear Bet
-                </button>
-                <button
-                  className="btn btn--deal"
-                  onClick={handleDeal}
-                  disabled={stagedWager <= 0}
-                >
-                  Deal ›
-                </button>
-              </div>
-            </>
-          )}
+          {/* Action panel */}
+          <div className="hud-actions">
 
-          {/* DEALING PHASE — spinner while cards animate in */}
-          {phase === "dealing" && (
-            <div className="dealing-status">
-              <div className="dealing-spinner" />
-              <span>Dealing…</span>
-            </div>
-          )}
+            {isWagering && (
+              <>
+                <div className="chip-tray">
+                  {[5,25,50,100,500].map(v => (
+                    <Chip key={v} value={v}
+                      disabled={stagedWager+v>balance}
+                      onClick={() => dispatch({ type:"ADD_CHIP", payload:v })} />
+                  ))}
+                </div>
+                <div className="wager-row">
+                  <button className="btn btn--ghost"
+                    onClick={() => dispatch({type:"CLEAR_WAGER"})}
+                    disabled={stagedWager===0}>Clear Bet</button>
+                  <button className="btn btn--deal"
+                    onClick={handleDeal}
+                    disabled={stagedWager<=0}>Deal ›</button>
+                </div>
+              </>
+            )}
 
-          {/* PLAYING — normal */}
-          {phase === "playing" && !splitMode && (
-            <div className="action-row">
-              <button className="btn btn--hit"    onClick={handleHit}    disabled={actionsLocked}>HIT</button>
-              <button className="btn btn--stand"  onClick={handleStand}  disabled={actionsLocked}>STAND</button>
-              <button className="btn btn--double" onClick={handleDouble} disabled={actionsLocked || wager * 2 > balance}>DOUBLE</button>
-            </div>
-          )}
-
-          {/* PLAYING — split */}
-          {phase === "playing" && splitMode && (
-            <div className="split-controls">
-              <div className="split-controls__label">
-                Playing Hand {currentSplitHand + 1} of {splitHands.length}
+            {isDealing && (
+              <div className="dealing-status">
+                <div className="dealing-spinner"/><span>Dealing…</span>
               </div>
+            )}
+
+            {isPlaying && !splitMode && (
               <div className="action-row">
-                <button className="btn btn--hit"   onClick={() => handleSplitDecision("hit")}   disabled={actionsLocked}>HIT HAND</button>
-                <button className="btn btn--stand" onClick={() => handleSplitDecision("stand")} disabled={actionsLocked}>STAND HAND</button>
+                <button className="btn btn--hit"    onClick={handleHit}    disabled={actionsLocked}>HIT</button>
+                <button className="btn btn--stand"  onClick={handleStand}  disabled={actionsLocked}>STAND</button>
+                <button className="btn btn--double" onClick={handleDouble} disabled={actionsLocked||wager*2>balance}>DOUBLE</button>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* RESULT */}
-          {phase === "result" && (
-            <button
-              className="btn btn--deal btn--wide"
-              onClick={() => dispatch({ type: "NEXT_ROUND" })}
-            >
-              Next Round ›
-            </button>
-          )}
+            {isPlaying && splitMode && (
+              <div className="split-controls">
+                <div className="split-controls__label">Playing Hand {currentSplitHand+1} of {splitHands.length}</div>
+                <div className="action-row">
+                  <button className="btn btn--hit"   onClick={()=>handleSplitDecision("hit")}   disabled={actionsLocked}>HIT HAND</button>
+                  <button className="btn btn--stand" onClick={()=>handleSplitDecision("stand")} disabled={actionsLocked}>STAND HAND</button>
+                </div>
+              </div>
+            )}
+
+            {isResult && (
+              <button className="btn btn--deal btn--wide"
+                onClick={() => dispatch({type:"NEXT_ROUND"})}>Next Round ›</button>
+            )}
+
+          </div>
         </div>
       </div>
     </>
