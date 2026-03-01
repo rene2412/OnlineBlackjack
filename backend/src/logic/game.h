@@ -54,6 +54,7 @@ class Game {
 	int DetermineDealerAceHandValue(Dealer &dealer);
 	int DetermineAceMultipleHandsValue(std::vector<std::shared_ptr<Player>> &players, int playerIndex, int handIndex);
 	bool IsSplitValid(std::vector<std::shared_ptr<Player>> &players, int index);
+	bool DoubleDown(std::vector<std::shared_ptr<Player>> &players, int playerIndex);
 	void push_back(const Player &p); 
 	void Split(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, std::deque<char> &suitDeck, int index, std::string action);
 	void HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index);

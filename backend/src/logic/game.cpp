@@ -114,8 +114,15 @@ void Game::Deal(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
 		}
 	 	turn ++;
 	  }  
+	    Insurance(players, dealer);
 	    Dealer_BlackJack(players, dealer, deck);
 		Player_BlackJack(players, dealer, deck);
+		//split
+    	if (IsSplitValid(players, 0)) {
+				std::cout << "Sending Split API\n";
+		        std::string split = "{\"event\": \"playerSplitChoice\"}";
+				GameWebSocketController::EventAPI(split);
+			}   
 }
 
 void Game::PlayerHit(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index) {
@@ -162,9 +169,10 @@ void Game::ResetHands(std::vector<std::shared_ptr<Player>> &players, Dealer &dea
 }
 
 bool Game::IsSplitValid(std::vector<std::shared_ptr<Player>> &players, int index) {
-	auto &playerSuitHand = players[index]->GetCardSuits();
-	char firstCard = playerSuitHand[0]; 
-	char secondCard =  playerSuitHand[1];
+	auto &playerHand = players[index]->GetDeck();
+	int firstCard = playerHand[0]; 
+	int secondCard =  playerHand[1];
+	std::cout << "Split First: " << firstCard << "| Second Card: " << secondCard << std::endl;
 	if (firstCard == secondCard) {
 		return true;
 	}
@@ -334,6 +342,11 @@ void Game::SplitPlay(std::vector<std::shared_ptr<Player>> &players, Dealer &deal
 	 currentHand ++;
 	}
 }
+bool DoubleDown(std::vector<std::shared_ptr<Player>> &players, int index) {
+		//auto& player = players->GetPlayers()[index];
+		//int newWager = player->GetWager() * 2;
+		return false;
+}
 
 void Game::Insurance(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer) {
 		if (dealer.firstCard() == 10) {
@@ -356,11 +369,15 @@ void Game::Dealer_BlackJack(std::vector<std::shared_ptr<Player>> &players, Deale
 		int index = 0;
 		for (auto player : players) {
 			if (player->GetCount() == BLACKJACK) { 
-				Push(players, index);							
+				Push(players, index);
+				std::string push =  "{\"event\": \"blackjackPush\"}";
+				GameWebSocketController::EventAPI(push);					
 				}	
 			 	index ++;
 		 	}
-      }
+				std::string playerInsuranceChoice =  "{\"event\": \"dealerBlackjack\"}";
+				GameWebSocketController::EventAPI(playerInsuranceChoice);	
+		}
 }
 
 void Game::Player_BlackJack(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck) {
@@ -369,6 +386,8 @@ void Game::Player_BlackJack(std::vector<std::shared_ptr<Player>> &players, Deale
 		for (auto &player : players) {
 			if (player->GetCount() == BLACKJACK) {
 				std::cout << "Player Blackjack!\n";
+				std::string blackjack = "{\"event\": \"playerBlackJack\"}";
+				GameWebSocketController::EventAPI(blackjack);
 				int payout = player->GetWager() * 1.5;
 				int newBalance = payout + player->GetBalance();
 				player->SetBalance(newBalance);
@@ -429,7 +448,8 @@ void Game::PlayerDecisions(std::vector<std::shared_ptr<Player>> &players, std::d
 				std::string updateCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(playerCount) + "}";
 				GameWebSocketController::EventAPI(updateCount);
 			try {
-				if (player->GetCount() <= 21) {
+				std::cout << "STATUS: " << player->GetBust() << std::endl;
+				if (player->GetCount() <= 21 and !player->GetBust()) {
 					std::cout << "Sending Hit API but hasnt busted yet\n";	
 					std::string animation = "{\"event\": \"hit\"}";
 					GameWebSocketController::EventAPI(animation);
@@ -441,7 +461,6 @@ void Game::PlayerDecisions(std::vector<std::shared_ptr<Player>> &players, std::d
 	  }
 	  	if (action == "stand") {
 			int count = DealerStand(players, dealer, deck);
-			std::cout << "Turn: " << count << std::endl;
 	  		std::string animation = "{\"event\": \"dealerHit\", \"count\": " + std::to_string(count) + ", \"values\": [";
 			for (auto &x : dealer.GetSum()) {
 				std::cout << x << ", " << std::endl;
@@ -478,8 +497,6 @@ void Game::Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
 						std::string playerBust = "{\"event\": \"playerBust\", \"playerName\": \"" + players[index]->GetName() + "\"}";
 						std::cout << "PlayerBust API: " << playerBust << std::endl;
 						GameWebSocketController::EventAPI(playerBust);
-						players[index]->ClearHand();
-						dealer.ClearHand();
 						return;
 			}
 			if (dealer.count() > 21) {

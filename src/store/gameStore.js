@@ -1,8 +1,9 @@
 export const initialState = {
   connected:        false,
-  phase:            "wager",   // 'wager' | 'dealing' | 'playing' | 'result'
+  phase:            "wager",
   round:            1,
   balance:          1000,
+  startingBalance:  1000,
   wager:            0,
   stagedWager:      0,
 
@@ -12,9 +13,8 @@ export const initialState = {
   playerCount:      0,
   dealerCount:      0,
 
-  // The shoe we sent to backend — we pop from this to know real card values
   shoe:             [],
-  shoeIndex:        0,   // next card to deal from shoe
+  shoeIndex:        0,
 
   splitMode:        false,
   splitHands:       [],
@@ -27,6 +27,14 @@ export const initialState = {
   actionsLocked:    false,
   dealt:            false,
   pendingBalance:   null,
+
+  // Session stats
+  sessionWins:      0,
+  sessionLosses:    0,
+  sessionPushes:    0,
+  sessionStart:     Date.now(),
+  sessionEnded:     false,
+  sessionEndedAt:   null,
 };
 
 export function gameReducer(state, action) {
@@ -42,6 +50,9 @@ export function gameReducer(state, action) {
     }
     case "CLEAR_WAGER":
       return { ...state, stagedWager: 0 };
+
+    case "SET_WAGER":
+      return { ...state, stagedWager: Math.min(action.payload, state.balance) };
 
     case "CONFIRM_WAGER":
       return { ...state, wager: state.stagedWager };
@@ -67,10 +78,10 @@ export function gameReducer(state, action) {
         currentSplitHand: 0,
         actionsLocked:    false,
         dealt:            false,
-  pendingBalance:   null,
+        pendingBalance:   null,
         showInsurance:    false,
         showSplitPrompt:  false,
-        shoeIndex:        0,
+        shoeIndex:        0,  // reset per round — tracks cards used THIS round only
       };
 
     case "DEAL_COMPLETE":
@@ -166,12 +177,27 @@ export function gameReducer(state, action) {
         // stay in "playing" so cards still render
       };
 
-    case "COMMIT_OUTCOME":
+    case "COMMIT_OUTCOME": {
+      const o = state.outcome;
+      const newBalance = state.pendingBalance ?? state.balance;
+      const wins   = o === "win"  ? state.sessionWins + 1   : state.sessionWins;
+      const losses = o === "bust" ? state.sessionLosses + 1 : state.sessionLosses;
+      const pushes = o === "push" ? state.sessionPushes + 1 : state.sessionPushes;
+      const ended  = newBalance <= 0;
       return {
         ...state,
-        phase:   "result",
-        balance: state.pendingBalance ?? state.balance,
+        phase:          "result",
+        balance:        newBalance,
+        sessionWins:    wins,
+        sessionLosses:  losses,
+        sessionPushes:  pushes,
+        sessionEnded:   ended,
+        sessionEndedAt: ended ? Date.now() : state.sessionEndedAt,
       };
+    }
+
+    case "END_SESSION":
+      return { ...state, sessionEnded: true, sessionEndedAt: Date.now(), phase: "result" };
 
     case "SET_OUTCOME":
       return {
@@ -234,20 +260,26 @@ export function gameReducer(state, action) {
     }
 
     case "SHOW_INSURANCE":
-      return state.dealt ? { ...state, showInsurance: true } : state;
+      return { ...state, showInsurance: true };
     case "HIDE_INSURANCE":
       return { ...state, showInsurance: false };
     case "SHOW_SPLIT_PROMPT":
-      return state.dealt ? { ...state, showSplitPrompt: true } : state;
+      return { ...state, showSplitPrompt: true };
     case "HIDE_SPLIT_PROMPT":
       return { ...state, showSplitPrompt: false };
 
     case "NEXT_ROUND":
       return {
         ...initialState,
-        balance:   state.balance,
-        round:     state.round + 1,
-        connected: state.connected,
+        balance:          state.balance,
+        startingBalance:  state.startingBalance,
+        round:            state.round + 1,
+        connected:        state.connected,
+        sessionWins:      state.sessionWins,
+        sessionLosses:    state.sessionLosses,
+        sessionPushes:    state.sessionPushes,
+        sessionStart:     state.sessionStart,
+        sessionEndedAt:   state.sessionEndedAt,
       };
 
     default:

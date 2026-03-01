@@ -11,8 +11,9 @@ import ResultBanner  from "./components/ResultBanner";
 import Toasts, { useToasts } from "./components/Toasts";
 
 const DEAL_INTERVAL  = 340;
-const SWEEP_DELAY    = 800;   // ms after outcome before cards sweep off
-const SWEEP_DURATION = 600;   // ms for sweep animation
+const CARD_ANIM_MS   = 820; // per dealer card during dealerHit
+const SWEEP_DURATION = 600;
+
 
 export default function App() {
   const [state, dispatch]    = useReducer(gameReducer, initialState);
@@ -23,17 +24,49 @@ export default function App() {
   const timersRef            = useRef([]);
   const isDealingRef         = useRef(false);
   const wsQueueRef           = useRef([]);
+  const postDealQueueRef     = useRef([]); // sequential queue for insurance/split/blackjack
+  const postDealFiredRef     = useRef(false);
+  const modalActiveRef       = useRef(false); // true while a modal is showing
+  const parsedShoeRef        = useRef([]); // full persistent shoe — survives rounds
+  const shoePositionRef      = useRef(0);  // current position in persistent shoe
+  const shoeInitializedRef   = useRef(false); // have we sent the shoe to backend yet
 
-  // sweeping = cards flying off after outcome
-  const [sweeping, setSweeping] = useState(false);
+  const [sweeping, setSweeping]         = useState(false);
+  const [showCounters, setShowCounters] = useState(false);
+  const [holeRevealed, setHoleRevealed] = useState(false);
+  const [reshuffling, setReshuffling]   = useState(false); // reshuffle animation
+  // Extra delay before sweep — set when dealerHit fires so we wait for last card
+  const sweepExtraDelayRef  = useRef(0);
+  const pendingOutcomeRef   = useRef(null);
+  const dealerAnimDoneRef   = useRef(true);
+  const dealerCardIndexRef  = useRef(0); // tracks which dealer card we're on
 
+  const [, forceTimerTick] = useState(0);
   useEffect(() => { stateRef.current = state; },       [state]);
   useEffect(() => { addToastRef.current = addToast; }, [addToast]);
+  useEffect(() => {
+    const interval = setInterval(() => forceTimerTick(t => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  // ─── Trigger sweep then move to result phase ─────────────────────
+  // Fire post-deal events one at a time — next fires only after modal is dismissed
+  function fireNextPostDeal() {
+    if (modalActiveRef.current) return;
+    const next = postDealQueueRef.current.shift();
+    if (!next) return;
+    console.log(`[postDeal] firing ${next.event} at`, Date.now());
+    // Only hold modalActive for events that show a modal requiring user input
+    const isModal = ["playerInsuranceChoice", "playerSplitChoice"].includes(next.event);
+    if (isModal) modalActiveRef.current = true;
+    processEvent(next);
+    // Non-modal events (blackjack outcomes) fire and free the queue immediately
+    if (!isModal) fireNextPostDeal();
+  }
+
   function triggerSweep(outcomePayload) {
     dispatch({ type: "SET_OUTCOME_PENDING", payload: outcomePayload });
-    // Short delay so bust card animates in first
+    const extra = sweepExtraDelayRef.current;
+    sweepExtraDelayRef.current = 0;
     const t1 = setTimeout(() => {
       setSweeping(true);
       const t2 = setTimeout(() => {
@@ -41,7 +74,7 @@ export default function App() {
         dispatch({ type: "COMMIT_OUTCOME" });
       }, SWEEP_DURATION + 100);
       timersRef.current.push(t2);
-    }, SWEEP_DELAY);
+    }, 600 + extra); // 600ms base + however long dealer cards still need
     timersRef.current.push(t1);
   }
 
@@ -57,11 +90,14 @@ export default function App() {
       case "__disconnected": dispatch({ type:"SET_CONNECTED", payload:false }); break;
 
       case "updateCount":
-        dispatch({ type:"UPDATE_PLAYER_COUNT", payload:msg.count });
+        dispatch({ type:"UPDATE_PLAYER_COUNT", payload: msg.count });
         break;
 
       case "updateDealerCount":
-        dispatch({ type:"UPDATE_DEALER_COUNT", payload:msg.count });
+        // Only used outside of dealerHit flow (e.g. initial deal)
+        if (dealerAnimDoneRef.current) {
+          dispatch({ type:"UPDATE_DEALER_COUNT", payload: msg.count });
+        }
         break;
 
       case "hit":
@@ -69,57 +105,144 @@ export default function App() {
         break;
 
       case "dealerHit": {
+        // values[] from backend = cumulative counts skipping card[0]:
+        // e.g. dealer has 6(hidden)+10(visible), draws 4:
+        //   GetSum() = [6, 16, 20]  → sent as [16, 20]
+        // So values[0] = count after hole reveal, values[1..n] = after each new card
+        const counts = msg.values || [];
+        console.log("[dealerHit] values:", counts); // debug — remove later
+
+        dealerAnimDoneRef.current  = false;
+        dealerCardIndexRef.current = 0;
+
+        if (counts.length === 0) {
+          // No cards — just reveal hole
+          dispatch({ type:"REVEAL_DEALER_HOLE" });
+          const td = setTimeout(() => {
+            dealerAnimDoneRef.current = true;
+            if (pendingOutcomeRef.current) {
+              const { payload, toastMsg, toastType } = pendingOutcomeRef.current;
+              pendingOutcomeRef.current = null;
+              addToastRef.current(toastMsg, toastType);
+              triggerSweep(payload);
+            }
+          }, 400);
+          timersRef.current.push(td);
+          sweepExtraDelayRef.current = 400;
+          break;
+        }
+
+        // Step 0: reveal hole card + update count to values[0]
         dispatch({ type:"REVEAL_DEALER_HOLE" });
-        (msg.values||[]).forEach((v,i) => {
-          const t = setTimeout(() => dispatch({ type:"ADD_DEALER_CARD", payload:{value:v} }), (i+1)*420);
+        setHoleRevealed(true);
+        dispatch({ type:"UPDATE_DEALER_COUNT", payload: counts[0] });
+
+        // Steps 1..n: deal each extra card with staggered timing
+        const extraCounts = counts.slice(1); // counts after each drawn card
+        extraCounts.forEach((runningCount, i) => {
+          const t = setTimeout(() => {
+            dispatch({ type:"ADD_DEALER_CARD", payload:{ value: runningCount } });
+            dispatch({ type:"UPDATE_DEALER_COUNT", payload: runningCount });
+          }, (i + 1) * CARD_ANIM_MS);
           timersRef.current.push(t);
         });
-        const newTotal = (msg.values||[]).reduce((a,v)=>a+v, s.dealerCount);
-        const t = setTimeout(() => dispatch({ type:"UPDATE_DEALER_COUNT", payload:newTotal }),
-          ((msg.values||[]).length+1)*420);
-        timersRef.current.push(t);
+
+        const lastCardTime = extraCounts.length > 0
+          ? extraCounts.length * CARD_ANIM_MS + 350
+          : 350;
+
+        const td = setTimeout(() => {
+          dealerAnimDoneRef.current = true;
+          if (pendingOutcomeRef.current) {
+            const { payload, toastMsg, toastType } = pendingOutcomeRef.current;
+            pendingOutcomeRef.current = null;
+            addToastRef.current(toastMsg, toastType);
+            triggerSweep(payload);
+          }
+        }, lastCardTime);
+        timersRef.current.push(td);
+
+        sweepExtraDelayRef.current = lastCardTime;
         break;
       }
 
-      // Player busts — deal the card first, THEN sweep after it lands
       case "playerBust": {
-        dispatch({ type:"HIT_PLAYER_FROM_SHOE" }); // bust card comes out
+        dispatch({ type:"HIT_PLAYER_FROM_SHOE" });
         const payload = { outcome:"bust", text:"BUST", newBalance: s.balance - s.wager };
-        toast(`${msg.playerName||"You"} busted!`, "bust");
+        toast(`Bust!`, "bust");
         triggerSweep(payload);
         break;
       }
-
       case "dealerBust": {
         const payload = { outcome:"win", text:"DEALER BUSTS!", newBalance: s.balance + s.wager };
-        toast("Dealer busted — you win!", "win");
-        triggerSweep(payload);
+        if (!dealerAnimDoneRef.current) {
+          pendingOutcomeRef.current = { payload, toastMsg:"Dealer busted — you win!", toastType:"win" };
+        } else {
+          toast("Dealer busted — you win!", "win");
+          triggerSweep(payload);
+        }
         break;
       }
-
       case "playerWin": {
         const payload = { outcome:"win", text:"YOU WIN!", newBalance: s.balance + s.wager };
-        toast(`+$${s.wager}`, "win");
-        triggerSweep(payload);
+        if (!dealerAnimDoneRef.current) {
+          pendingOutcomeRef.current = { payload, toastMsg:`+$${s.wager}`, toastType:"win" };
+        } else {
+          toast(`+$${s.wager}`, "win");
+          triggerSweep(payload);
+        }
         break;
       }
-
       case "dealerWin": {
         const payload = { outcome:"bust", text:"DEALER WINS", newBalance: s.balance - s.wager };
-        toast(`-$${s.wager}`, "bust");
-        triggerSweep(payload);
+        if (!dealerAnimDoneRef.current) {
+          pendingOutcomeRef.current = { payload, toastMsg:`-$${s.wager}`, toastType:"bust" };
+        } else {
+          toast(`-$${s.wager}`, "bust");
+          triggerSweep(payload);
+        }
         break;
       }
-
       case "push": {
         const payload = { outcome:"push", text:"PUSH" };
-        toast("Push — bet returned", "push");
-        triggerSweep(payload);
+        if (!dealerAnimDoneRef.current) {
+          pendingOutcomeRef.current = { payload, toastMsg:"Push — bet returned", toastType:"push" };
+        } else {
+          toast("Push — bet returned", "push");
+          triggerSweep(payload);
+        }
         break;
       }
 
       case "playerInsuranceChoice": dispatch({ type:"SHOW_INSURANCE"   }); break;
       case "playerSplitChoice":     dispatch({ type:"SHOW_SPLIT_PROMPT"}); break;
+
+      case "playerBlackJack": {
+        const payout = Math.floor(s.wager * 1.5);
+        const payload = { outcome:"win", text:"BLACKJACK!", newBalance: s.balance + payout };
+        toast(`Blackjack! +$${payout}`, "win");
+        triggerSweep(payload);
+        break;
+      }
+
+      case "dealerBlackjack": {
+        const payload = { outcome:"bust", text:"DEALER BLACKJACK", newBalance: s.balance - s.wager };
+        toast("Dealer has Blackjack!", "bust");
+        triggerSweep(payload);
+        break;
+      }
+
+      case "blackjackPush": {
+        const payload = { outcome:"push", text:"PUSH — BOTH BLACKJACK" };
+        toast("Both Blackjack — Push!", "push");
+        triggerSweep(payload);
+        break;
+      }
+
+      case "endGame": {
+        dispatch({ type: "END_SESSION" });
+        break;
+      }
 
       case "firstSplitCounter":  dispatch({ type:"UPDATE_PLAYER_COUNT", payload:msg.count }); break;
       case "secondSplitCounter": dispatch({ type:"INIT_SPLIT", payload:{counts:[s.playerCount,msg.count]}}); break;
@@ -127,16 +250,37 @@ export default function App() {
         const ex = s.splitHands.map(h=>h.count);
         dispatch({ type:"INIT_SPLIT", payload:{counts:[...ex,msg.count]}}); break;
       }
-      case "splitHit":        dispatch({ type:"SPLIT_HIT_HAND",    payload:{handIndex:msg.currentHand,count:msg.currentHandCount}}); break;
+      case "splitHit":        dispatch({ type:"SPLIT_HIT_HAND",    payload:{handIndex:msg.currentHand, count:msg.currentHandCount}}); break;
       case "playerSplitBust": dispatch({ type:"SPLIT_BUST_HAND",   payload:msg.hand }); toast(`Hand ${msg.hand+1} busted`,"bust"); break;
-      case "playerSplitWin":  dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount,won:true, newBalance:msg.updateBalance}}); toast(`Hand ${msg.handCount+1} wins!`,"win"); break;
-      case "dealerSplitWin":  dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount,won:false,newBalance:msg.updateBalance}}); toast(`Dealer wins hand ${msg.handCount+1}`,"bust"); break;
-      case "playerSplitPush": dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount,won:null, newBalance:s.balance}}); toast(`Hand ${msg.handCount+1} — push`,"push"); break;
+      case "playerSplitWin":  dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount, won:true,  newBalance:msg.updateBalance}}); toast(`Hand ${msg.handCount+1} wins!`,"win"); break;
+      case "dealerSplitWin":  dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount, won:false, newBalance:msg.updateBalance}}); toast(`Dealer wins hand ${msg.handCount+1}`,"bust"); break;
+      case "playerSplitPush": dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount, won:null,  newBalance:s.balance}}); toast(`Hand ${msg.handCount+1} — push`,"push"); break;
       default: break;
     }
   }, []);
 
   const handleMessage = useCallback((msg) => {
+    const neverQueue = ["endGame", "__connected", "__disconnected"];
+    if (neverQueue.includes(msg.event)) {
+      processEvent(msg);
+      return;
+    }
+    // All of these must wait for cards to be dealt and visible
+    const postDeal = [
+      "playerInsuranceChoice", "playerSplitChoice",
+      "playerBlackJack", "dealerBlackjack", "blackjackPush",
+    ];
+    if (postDeal.includes(msg.event)) {
+      console.log(`[handleMessage] ${msg.event} arrived at`, Date.now(), `postDealFired=${postDealFiredRef.current} isDeal=${isDealingRef.current}`);
+      if (postDealFiredRef.current) {
+        postDealQueueRef.current.push(msg);
+        const t = setTimeout(() => fireNextPostDeal(), 1800);
+        timersRef.current.push(t);
+      } else {
+        postDealQueueRef.current.push(msg);
+      }
+      return;
+    }
     if (isDealingRef.current) wsQueueRef.current.push(msg);
     else processEvent(msg);
   }, [processEvent]);
@@ -147,48 +291,106 @@ export default function App() {
   //  DEAL
   // ═══════════════════════════════════════════
   async function handleDeal() {
-    if (state.stagedWager <= 0) { addToast("Place a wager first!",""); return; }
+    if (state.stagedWager <= 0) { addToast("Place a wager first!", ""); return; }
 
-    const shoe   = generateShoe(6);
-    const parsed = shoe.map(parseCard);
+    // Need at least ~20 cards for a round (generous buffer)
+    const remaining = parsedShoeRef.current.length - shoePositionRef.current;
+    let needsShuffle = false;
+
+    if (!shoeInitializedRef.current || remaining < 20) {
+      // First time or running low — generate fresh shoe and send to backend
+      setReshuffling(shoeInitializedRef.current); // only show animation on reshuffle, not first load
+      if (shoeInitializedRef.current) {
+        await new Promise(res => setTimeout(res, 1800));
+        setReshuffling(false);
+        addToast("Reshuffling…", "");
+      }
+      const freshShoe = generateShoe(6);
+      parsedShoeRef.current   = freshShoe.map(parseCard);
+      shoePositionRef.current = 0;
+      shoeInitializedRef.current = true;
+      needsShuffle = true;
+    }
+
+    const slicedParsed = parsedShoeRef.current.slice(shoePositionRef.current);
 
     dispatch({ type:"CONFIRM_WAGER" });
-    dispatch({ type:"SET_SHOE",    payload:parsed });
+    dispatch({ type:"SET_SHOE",    payload: slicedParsed });
     dispatch({ type:"START_ROUND" });
+    setShowCounters(false);
+    setHoleRevealed(false);
+    sweepExtraDelayRef.current  = 0;
+    dealerAnimDoneRef.current   = true;
+    pendingOutcomeRef.current   = null;
+    dealerCardIndexRef.current  = 0;
 
-    isDealingRef.current = true;
-    wsQueueRef.current   = [];
+    isDealingRef.current     = true;
+    wsQueueRef.current       = [];
+    // NOTE: do NOT clear postDealQueueRef here — events like dealerBlackjack
+    // may arrive before deal starts and must survive into the flush
+    postDealFiredRef.current = false;
+    modalActiveRef.current   = false;
     timersRef.current.forEach(clearTimeout);
     timersRef.current = [];
 
     try {
       await api.sendWager(state.stagedWager);
-      await api.sendShuffle(shoe);
+      if (needsShuffle) {
+        const shoeStrings = parsedShoeRef.current.map(c => c.rank + c.suit);
+        await api.sendShuffle(shoeStrings);
+      }
     } catch {
-      addToast("Server error — is the backend running?","bust");
+      addToast("Server error — is the backend running?", "bust");
       isDealingRef.current = false;
       dispatch({ type:"SET_PHASE", payload:"wager" });
       return;
     }
 
+    // Deal order: Dealer↑ Player↑ Dealer↓(hole) Player↑  — indices 0,1,2,3 in shoe
     const steps = [
       "DEAL_DEALER_CARD_FROM_SHOE",
       "DEAL_PLAYER_CARD_FROM_SHOE",
       "DEAL_DEALER_HOLE_FROM_SHOE",
       "DEAL_PLAYER_CARD_FROM_SHOE",
     ];
-    steps.forEach((action,i) => {
-      const t = setTimeout(() => dispatch({ type:action }), i * DEAL_INTERVAL);
+    steps.forEach((action, i) => {
+      const t = setTimeout(() => dispatch({ type: action }), i * DEAL_INTERVAL);
       timersRef.current.push(t);
     });
 
     const flush = setTimeout(() => {
-      isDealingRef.current = false;
-      dispatch({ type:"DEAL_COMPLETE" });
+      console.log(`[flush] fired at`, Date.now(), `postDealQueue length=${postDealQueueRef.current.length}`);
+      isDealingRef.current  = false;
+      postDealFiredRef.current = true;
+
+      // Flush regular queued WS events
       const q = [...wsQueueRef.current];
       wsQueueRef.current = [];
       q.forEach(msg => processEvent(msg));
-    }, steps.length * DEAL_INTERVAL + 400);
+
+      // After breathing room, fire first post-deal event (rest fire after each modal dismiss)
+      if (postDealQueueRef.current.length > 0) {
+        const t = setTimeout(() => fireNextPostDeal(), 1800);
+        timersRef.current.push(t);
+      }
+
+      // Fallback counts from shoe if backend hasn't sent them
+      const curState = stateRef.current;
+      if (curState.playerCount === 0 && slicedParsed.length >= 4) {
+        let v1 = slicedParsed[1]?.value ?? 0;
+        let v2 = slicedParsed[3]?.value ?? 0;
+        if (v1 + v2 > 21 && (v1 === 11 || v2 === 11)) {
+          if (v1 === 11) v1 = 1; else v2 = 1;
+        }
+        dispatch({ type:"UPDATE_PLAYER_COUNT", payload: v1 + v2 });
+      }
+      if (curState.dealerCount === 0 && slicedParsed.length >= 1) {
+        dispatch({ type:"UPDATE_DEALER_COUNT", payload: slicedParsed[0]?.value ?? 0 });
+      }
+
+      dispatch({ type:"DEAL_COMPLETE" });
+      setShowCounters(true);
+    }, steps.length * DEAL_INTERVAL + 500);
     timersRef.current.push(flush);
   }
 
@@ -202,17 +404,24 @@ export default function App() {
   }
   async function handleDouble() {
     const doubled = state.wager * 2;
-    if (doubled > state.balance) { addToast("Can't afford double!","bust"); return; }
+    if (doubled > state.balance) { addToast("Can't afford double!", "bust"); return; }
     dispatch({ type:"LOCK_ACTIONS" });
-    try { await api.sendWager(doubled); dispatch({ type:"CONFIRM_WAGER" }); await api.sendDecision("stand"); }
-    catch { dispatch({ type:"UNLOCK_ACTIONS" }); }
+    try {
+      await api.sendWager(doubled);
+      dispatch({ type:"CONFIRM_WAGER" });
+      await api.sendDecision("stand");
+    } catch { dispatch({ type:"UNLOCK_ACTIONS" }); }
   }
   async function handleInsurance(yes) {
     dispatch({ type:"HIDE_INSURANCE" });
-    await api.sendInsurance(yes?"yes":"no");
+    modalActiveRef.current = false;
+    fireNextPostDeal(); // fire next queued event (e.g. split prompt)
+    await api.sendInsurance(yes ? "yes" : "no");
   }
   async function handleSplit(yes) {
     dispatch({ type:"HIDE_SPLIT_PROMPT" });
+    modalActiveRef.current = false;
+    fireNextPostDeal(); // fire next queued event if any
     if (yes) await api.sendSplit(true);
   }
   async function handleSplitDecision(action) {
@@ -226,6 +435,7 @@ export default function App() {
     splitMode, splitHands, currentSplitHand,
     outcome, resultText, showInsurance, showSplitPrompt,
     actionsLocked, connected,
+    sessionWins, sessionLosses, sessionPushes, sessionStart, sessionEnded, sessionEndedAt, startingBalance,
   } = state;
 
   const betAmount  = phase === "wager" ? stagedWager : wager;
@@ -233,6 +443,21 @@ export default function App() {
   const isWagering = phase === "wager";
   const isDealing  = phase === "dealing";
   const isResult   = phase === "result";
+
+  // Timer freezes when session ends
+  const timerEnd       = sessionEndedAt ?? Date.now();
+  const sessionElapsed = Math.floor((timerEnd - sessionStart) / 1000);
+  const sessionMins    = Math.floor(sessionElapsed / 60);
+  const sessionSecs    = sessionElapsed % 60;
+  const sessionTimeStr = `${sessionMins}:${String(sessionSecs).padStart(2, "0")}`;
+  const sessionProfit  = balance - startingBalance;
+  const totalHands     = sessionWins + sessionLosses + sessionPushes;
+
+  // Before hole revealed: show only face-up card value so player can't see full count.
+  // After hole revealed (dealerHit): show live dealerCount which updates card by card.
+  const dealerDisplayCount = holeRevealed
+    ? dealerCount
+    : (dealerHand[0]?.value ?? 0);
 
   return (
     <>
@@ -250,6 +475,62 @@ export default function App() {
 
       <Toasts toasts={toasts} />
       <ResultBanner text={resultText} type={outcome} />
+
+      {/* ── SESSION ENDED OVERLAY ── */}
+      {sessionEnded && (
+        <div className="session-overlay">
+          <div className="session-card">
+            <div className="session-suits">♠ ♥ ♦ ♣</div>
+            <h2 className="session-title">Session Over</h2>
+            <div className="session-divider" />
+            <div className="session-stats">
+              <div className="session-stat">
+                <span className="session-stat__label">Duration</span>
+                <span className="session-stat__val">{sessionTimeStr}</span>
+              </div>
+              <div className="session-stat">
+                <span className="session-stat__label">Hands Played</span>
+                <span className="session-stat__val">{totalHands}</span>
+              </div>
+              <div className="session-stat">
+                <span className="session-stat__label">Wins</span>
+                <span className="session-stat__val session-stat__val--win">{sessionWins}</span>
+              </div>
+              <div className="session-stat">
+                <span className="session-stat__label">Losses</span>
+                <span className="session-stat__val session-stat__val--loss">{sessionLosses}</span>
+              </div>
+              <div className="session-stat">
+                <span className="session-stat__label">Pushes</span>
+                <span className="session-stat__val">{sessionPushes}</span>
+              </div>
+              <div className="session-stat session-stat--profit">
+                <span className="session-stat__label">
+                  {sessionProfit >= 0 ? "Profit" : "Deficit"}
+                </span>
+                <span className={`session-stat__val ${sessionProfit >= 0 ? "session-stat__val--win" : "session-stat__val--loss"}`}>
+                  {sessionProfit >= 0 ? "+" : ""}${sessionProfit.toLocaleString()}
+                </span>
+              </div>
+            </div>
+            <button className="btn btn--deal btn--wide"
+              onClick={() => window.location.reload()}>New Session</button>
+          </div>
+        </div>
+      )}
+
+      {reshuffling && (
+        <div className="reshuffle-overlay">
+          <div className="reshuffle-inner">
+            <div className="reshuffle-cards">
+              {["♠","♥","♦","♣"].map((s,i) => (
+                <span key={i} className="reshuffle-suit" style={{ animationDelay:`${i*0.15}s` }}>{s}</span>
+              ))}
+            </div>
+            <p className="reshuffle-text">Reshuffling…</p>
+          </div>
+        </div>
+      )}
 
       <Modal open={showInsurance} suit="♠" title="Insurance?"
         body="Dealer is showing an Ace. Take insurance for half your wager?"
@@ -270,26 +551,24 @@ export default function App() {
             <div className="table-surface">
 
               {/* ── DEALER ZONE ── */}
-              <section className="zone zone--dealer">
-                {/* Count badge pinned to left, slides in after deal */}
-                <div className={["zone-count-left", state.dealt && dealerCount > 0 ? "zone-count-left--visible" : ""].filter(Boolean).join(" ")}
-                     style={{ opacity: state.dealt && dealerCount > 0 ? 1 : 0 }}>
-                  {dealerCount > 0 && (
-                    <CountRing count={isPlaying ? "?" : dealerCount} />
+              <section className="zone">
+                <span className="zone-label">D E A L E R</span>
+                <div className="count-above-wrap">
+                  {showCounters && dealerDisplayCount > 0 && (
+                    <CountRing key={`d-${dealerDisplayCount}`} count={dealerDisplayCount} animate />
                   )}
                 </div>
-                <span className="zone-label">D E A L E R</span>
                 <div className={["hand-area", sweeping ? "hand-area--sweep-up" : ""].filter(Boolean).join(" ")}>
-                  {dealerHand.map((card,i) => (
+                  {dealerHand.map((card, i) => (
                     <Card key={i} rank={card.rank} suit={card.suit}
                       color={card.color} symbol={card.symbol}
-                      hidden={card.hidden} dealing delay={i*80}
-                      dimmed={outcome==="win"} />
+                      hidden={card.hidden} dealing delay={i * 80}
+                      dimmed={outcome === "win"} />
                   ))}
                 </div>
               </section>
 
-              {/* Felt rules — curved along the arc, above the gold line */}
+              {/* Felt rules — curved SVG above arc */}
               <svg className="felt-rules-svg" viewBox="0 0 700 44" preserveAspectRatio="xMidYMid meet">
                 <defs>
                   <path id="feltCurve" d="M 40,38 Q 350,4 660,38" />
@@ -308,47 +587,47 @@ export default function App() {
               </div>
 
               {/* ── PLAYER ZONE ── */}
-              <section className="zone zone--player">
-                {/* Count badge pinned to left, slides in after deal */}
-                <div className={["zone-count-left", state.dealt && playerCount > 0 && !splitMode ? "zone-count-left--visible" : ""].filter(Boolean).join(" ")}
-                     style={{ opacity: state.dealt && playerCount > 0 && !splitMode ? 1 : 0 }}>
-                  {playerCount > 0 && !splitMode && (
-                    <CountRing count={playerCount} />
-                  )}
-                </div>
+              <section className="zone">
                 <span className="zone-label">
                   {splitMode ? "S P L I T   H A N D S" : "Y O U R   H A N D"}
                 </span>
 
                 {!splitMode && (
-                  <div className={["hand-area",
-                    outcome==="win"  ? "hand-area--winner" : "",
-                    outcome==="bust" ? "hand-area--loser"  : "",
-                    sweeping         ? "hand-area--sweep-down" : "",
-                  ].filter(Boolean).join(" ")}>
-                    {playerHand.map((card,i) => (
-                      <Card key={i} rank={card.rank} suit={card.suit}
-                        color={card.color} symbol={card.symbol}
-                        hidden={card.hidden} dealing delay={i*80}
-                        dimmed={outcome==="bust"} />
-                    ))}
-                  </div>
+                  <>
+                    <div className="count-above-wrap">
+                      {showCounters && playerCount > 0 && (
+                        <CountRing key={`p-${playerCount}`} count={playerCount} animate />
+                      )}
+                    </div>
+                    <div className={["hand-area",
+                      outcome === "win"  ? "hand-area--winner" : "",
+                      outcome === "bust" ? "hand-area--loser"  : "",
+                      sweeping           ? "hand-area--sweep-down" : "",
+                    ].filter(Boolean).join(" ")}>
+                      {playerHand.map((card, i) => (
+                        <Card key={i} rank={card.rank} suit={card.suit}
+                          color={card.color} symbol={card.symbol}
+                          hidden={card.hidden} dealing delay={i * 80}
+                          dimmed={outcome === "bust"} />
+                      ))}
+                    </div>
+                  </>
                 )}
 
                 {splitMode && (
                   <div className={["split-row", sweeping ? "hand-area--sweep-down" : ""].filter(Boolean).join(" ")}>
-                    {splitHands.map((hand,idx) => (
+                    {splitHands.map((hand, idx) => (
                       <div key={idx} className={["split-hand-block",
-                        idx===currentSplitHand?"split-hand-block--active":"",
+                        idx === currentSplitHand ? "split-hand-block--active" : "",
                       ].join(" ")}>
-                        <div className="split-hand-title">Hand {idx+1}</div>
+                        <div className="split-hand-title">Hand {idx + 1}</div>
                         <div className={["hand-area",
-                          hand.busted    ?"hand-area--loser" :"",
-                          hand.won===true?"hand-area--winner":"",
+                          hand.busted     ? "hand-area--loser"  : "",
+                          hand.won===true ? "hand-area--winner" : "",
                         ].filter(Boolean).join(" ")}>
-                          {hand.cards.map((c,ci) => (
+                          {hand.cards.map((c, ci) => (
                             <Card key={ci} rank={c.rank} suit={c.suit}
-                              color={c.color} symbol={c.symbol} dealing delay={ci*100} />
+                              color={c.color} symbol={c.symbol} dealing delay={ci * 100} />
                           ))}
                         </div>
                         <CountRing count={hand.count} />
@@ -358,24 +637,22 @@ export default function App() {
                 )}
               </section>
 
-              {/* Betting circle — only visible during wager phase */}
+              {/* Betting circle — wager phase only */}
               {isWagering && (
-              <div className="bet-circle-wrap">
-                <div className={["bet-circle", betAmount>0?"bet-circle--active":""].join(" ")}>
-                  <span className="bet-circle__label">BET</span>
-                  <span className="bet-circle__amount">${betAmount}</span>
+                <div className="bet-circle-wrap">
+                  <div className={["bet-circle", betAmount > 0 ? "bet-circle--active" : ""].join(" ")}>
+                    <span className="bet-circle__label">BET</span>
+                    <span className="bet-circle__amount">${betAmount}</span>
+                  </div>
                 </div>
-              </div>
               )}
 
-            </div>{/* /table-surface */}
-          </div>{/* /table-rail */}
-        </div>{/* /table-wrap */}
+            </div>
+          </div>
+        </div>
 
         {/* ════ HUD ════ */}
         <div className="hud">
-
-          {/* Stats bar */}
           <div className="hud-stats">
             <div className="hud-stat">
               <span className="hud-label">Balance</span>
@@ -384,9 +661,9 @@ export default function App() {
 
             <div className="hud-stat hud-stat--center">
               <span className="hud-label">
-                {isWagering?"Place Your Wager":isDealing?"Dealing…":isPlaying?"Your Turn":"Round Over"}
+                {isWagering ? "Place Your Wager" : isDealing ? "Dealing…" : isPlaying ? "Your Turn" : "Game Over"}
               </span>
-              {(isPlaying||isDealing||isResult) && betAmount > 0 && (
+              {(isPlaying || isDealing || isResult) && betAmount > 0 && (
                 <div className="hud-wager-pill">
                   <span className="hud-wager-pill__label">Wager</span>
                   <span>${betAmount.toLocaleString()}</span>
@@ -400,32 +677,61 @@ export default function App() {
             </div>
           </div>
 
-          {/* Action panel */}
-          <div className="hud-actions">
+          {/* Session stats bar */}
+          <div className="hud-session">
+            <span className="hud-session__stat">
+              <span className="hud-session__label">W</span>
+              <span className="hud-session__val hud-session__val--win">{sessionWins}</span>
+            </span>
+            <span className="hud-session__divider">·</span>
+            <span className="hud-session__stat">
+              <span className="hud-session__label">L</span>
+              <span className="hud-session__val hud-session__val--loss">{sessionLosses}</span>
+            </span>
+            <span className="hud-session__divider">·</span>
+            <span className="hud-session__stat">
+              <span className="hud-session__label">P</span>
+              <span className="hud-session__val">{sessionPushes}</span>
+            </span>
+            <span className="hud-session__divider">·</span>
+            <span className="hud-session__stat">
+              <span className={`hud-session__val ${sessionProfit >= 0 ? "hud-session__val--win" : "hud-session__val--loss"}`}>
+                {sessionProfit >= 0 ? "+" : ""}${sessionProfit.toLocaleString()}
+              </span>
+            </span>
+            <span className="hud-session__divider">·</span>
+            <span className="hud-session__time">{sessionTimeStr}</span>
+            <button className="btn btn--end-session"
+              onClick={() => dispatch({ type:"END_SESSION" })}>End Session</button>
+          </div>
 
+          <div className="hud-actions">
             {isWagering && (
               <>
                 <div className="chip-tray">
-                  {[5,25,50,100,500].map(v => (
+                  {[5, 25, 50, 100, 500].map(v => (
                     <Chip key={v} value={v}
-                      disabled={stagedWager+v>balance}
-                      onClick={() => dispatch({ type:"ADD_CHIP", payload:v })} />
+                      disabled={stagedWager + v > balance}
+                      onClick={() => dispatch({ type:"ADD_CHIP", payload: v })} />
                   ))}
+                  <Chip key="allin" value="ALL IN" allIn
+                    disabled={stagedWager >= balance}
+                    onClick={() => dispatch({ type:"SET_WAGER", payload: balance })} />
                 </div>
                 <div className="wager-row">
                   <button className="btn btn--ghost"
-                    onClick={() => dispatch({type:"CLEAR_WAGER"})}
-                    disabled={stagedWager===0}>Clear Bet</button>
+                    onClick={() => dispatch({ type:"CLEAR_WAGER" })}
+                    disabled={stagedWager === 0}>Clear Bet</button>
                   <button className="btn btn--deal"
                     onClick={handleDeal}
-                    disabled={stagedWager<=0}>Deal ›</button>
+                    disabled={stagedWager <= 0}>Deal ›</button>
                 </div>
               </>
             )}
 
             {isDealing && (
               <div className="dealing-status">
-                <div className="dealing-spinner"/><span>Dealing…</span>
+                <div className="dealing-spinner" /><span>Dealing…</span>
               </div>
             )}
 
@@ -433,25 +739,32 @@ export default function App() {
               <div className="action-row">
                 <button className="btn btn--hit"    onClick={handleHit}    disabled={actionsLocked}>HIT</button>
                 <button className="btn btn--stand"  onClick={handleStand}  disabled={actionsLocked}>STAND</button>
-                <button className="btn btn--double" onClick={handleDouble} disabled={actionsLocked||wager*2>balance}>DOUBLE</button>
+                <button className="btn btn--double" onClick={handleDouble} disabled={actionsLocked || wager * 2 > balance}>DOUBLE</button>
               </div>
             )}
 
             {isPlaying && splitMode && (
               <div className="split-controls">
-                <div className="split-controls__label">Playing Hand {currentSplitHand+1} of {splitHands.length}</div>
+                <div className="split-controls__label">Playing Hand {currentSplitHand + 1} of {splitHands.length}</div>
                 <div className="action-row">
-                  <button className="btn btn--hit"   onClick={()=>handleSplitDecision("hit")}   disabled={actionsLocked}>HIT HAND</button>
-                  <button className="btn btn--stand" onClick={()=>handleSplitDecision("stand")} disabled={actionsLocked}>STAND HAND</button>
+                  <button className="btn btn--hit"   onClick={() => handleSplitDecision("hit")}   disabled={actionsLocked}>HIT HAND</button>
+                  <button className="btn btn--stand" onClick={() => handleSplitDecision("stand")} disabled={actionsLocked}>STAND HAND</button>
                 </div>
               </div>
             )}
 
             {isResult && (
               <button className="btn btn--deal btn--wide"
-                onClick={() => dispatch({type:"NEXT_ROUND"})}>Next Round ›</button>
+                onClick={async () => {
+                  shoePositionRef.current += stateRef.current.shoeIndex;
+                  // Reset post-deal state so events from new round don't fire prematurely
+                  postDealQueueRef.current = [];
+                  postDealFiredRef.current = false;
+                  modalActiveRef.current   = false;
+                  await api.sendNextGame().catch(() => {});
+                  dispatch({ type:"NEXT_ROUND" });
+                }}>Next Game ›</button>
             )}
-
           </div>
         </div>
       </div>

@@ -176,3 +176,48 @@ void GameController::SplitDecision(const drogon::HttpRequestPtr &req, std::funct
     result["ok"] = true;
     callback(drogon::HttpResponse::newHttpJsonResponse(result));
 }
+
+void GameController::NextGame(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+        try {
+        auto json = req->getJsonObject();
+        if (!json or !json->isMember("action")) {
+                 auto errorResp = drogon::HttpResponse::newHttpJsonResponse(Json::Value("Missing 'action' field"));
+        errorResp->setStatusCode(drogon::k400BadRequest);
+        callback(errorResp);
+        return;
+        }
+        std::string action = (*json)["action"].asString();
+        auto &game = Game::GetGameInstance();
+        auto &dealer = game.GetDealerInstance();
+        auto &deck = game.GetDeckInstance();
+        auto player = game.GetPlayers()[0];
+        player->SetBust(false);
+        player->ClearHand();
+		dealer.ClearHand();
+        std::cout << "Cleared table\n";
+        if (player->GetBalance() <= 0) {
+            std::cout << "Player has ran out of money, end game and display stats" << std::endl;
+            std::string endGame = "{\"event\": \"endGame\"}";
+                GameWebSocketController::EventAPI(endGame); 
+        }
+        //reverse(deck.GetDeck().begin(), deck.GetDeck().end());
+		//reverse(deck.GetSuitsDeck().begin(), deck.GetSuitsDeck().end());
+	    game.Deal(game.GetPlayers(), dealer, deck.GetDeck(), deck.GetSuitsDeck());
+        player->ShowDeck();
+        dealer.ShowDeck();
+
+        for (int i = 0; i < game.GetPlayers().size(); i++) {
+    	    if (game.IsSplitValid(game.GetPlayers(), i)) {
+		        std::cout << "Asking for split choice\n";
+                std::string split = "{\"event\": \"playerSplitChoice\"}";
+                GameWebSocketController::EventAPI(split); 
+	    }   
+    }
+        Json::Value result;
+        result["message"] = "Successful Connection";
+        result["action"] = action;
+        auto resp = HttpResponse::newHttpJsonResponse(result);
+        callback(resp);
+
+    } catch(...) {}
+}

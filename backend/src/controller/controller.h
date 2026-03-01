@@ -12,6 +12,7 @@ class GameController : public drogon::HttpController<GameController> {
                         ADD_METHOD_TO(GameController::Insurance, "/api/insurance-decision", drogon::Post);
                         ADD_METHOD_TO(GameController::Split, "/api/split-decision", drogon::Post);
                         ADD_METHOD_TO(GameController::SplitDecision, "/api/player-split-decision", drogon::Post);
+                        ADD_METHOD_TO(GameController::NextGame, "/api/next-game", drogon::Post);
                 METHOD_LIST_END
 
                 void CurrentPlayerDecision(const drogon::HttpRequestPtr &req,
@@ -23,5 +24,7 @@ class GameController : public drogon::HttpController<GameController> {
                 void Split(const drogon::HttpRequestPtr &req,
                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
                 void SplitDecision(const drogon::HttpRequestPtr &req,
+                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+                void NextGame(const drogon::HttpRequestPtr &req,
                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
 };

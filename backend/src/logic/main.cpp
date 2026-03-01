@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 	input >> player_count;
 	cout << "Dealer: \"How Many Players?\"?" << endl; 
     if (player_count == 1) {
-	  Player player("Rene Hernandez", 100, 0, 0, false); 
+	  Player player("Rene Hernandez", 1000, 0, 0, false); 
 	  game.push_back(player);
     }
 

@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 
 const API_BASE = "http://localhost:8080";
 
@@ -51,5 +51,10 @@ export default function useGameApi() {
     return post("/api/player-split-decision", { action, handIndex });
   }, []);
 
-  return { sendWager, sendShuffle, sendDecision, sendInsurance, sendSplit, sendSplitDecision };
+  // POST /api/next-game — GameController::SplitDecision() (reset handler)
+  const sendNextGame = useCallback(() => {
+    return post("/api/next-game", {action: "next-game"});
+  }, []);
+
+  return { sendWager, sendShuffle, sendDecision, sendInsurance, sendSplit, sendSplitDecision, sendNextGame };
 }

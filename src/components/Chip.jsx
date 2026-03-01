@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React from "react";
+
 const CHIP_COLORS = {
   5:   "chip--green",
   25:  "chip--red",
@@ -7,15 +8,14 @@ const CHIP_COLORS = {
   500: "chip--purple",
 };
 
-export default function Chip({ value, onClick, disabled }) {
+export default function Chip({ value, onClick, disabled, allIn, label }) {
+  const cls = allIn
+    ? "chip chip--allin"
+    : ["chip", CHIP_COLORS[value] || "chip--black"].join(" ");
+
   return (
-    <button
-      className={["chip", CHIP_COLORS[value] || "chip--black"].join(" ")}
-      onClick={onClick}
-      disabled={disabled}
-      type="button"
-    >
-      <span className="chip__label">${value}</span>
+    <button className={cls} onClick={onClick} disabled={disabled} type="button">
+       <span className="chip__label">{allIn ? "ALL IN" : `$${value}`}</span>
     </button>
   );
 }
