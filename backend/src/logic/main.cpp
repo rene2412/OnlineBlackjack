@@ -34,8 +34,7 @@ int main(int argc, char* argv[]) {
     }
 
     drogon::app()
-        .addListener("0.0.0.0", 8080)
-        .setDocumentRoot("../../dist");
+        .addListener("0.0.0.0", 8080);
     
     //Load config file
     drogon::app().registerHandler("/api/shuffle",

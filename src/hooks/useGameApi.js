@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 async function post(endpoint, body) {
   console.log(`[api] POST ${endpoint}`, body);
