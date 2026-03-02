@@ -1,0 +1,4 @@
+backend/build
+node_modules
+.git
+backend/drogon/build
