@@ -1,11 +1,11 @@
 # ─────────────────────────────────────────
-# Stage 1: Build C++ backend
+# Stage 1: Build C++ backend (and Drogon)
 # ─────────────────────────────────────────
 FROM ubuntu:22.04 AS cpp-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
-    build-essential cmake git \
+    build-essential cmake git ca-certificates \
     libssl-dev zlib1g-dev libjsoncpp-dev \
     uuid-dev libspdlog-dev libc-ares-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -13,16 +13,18 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 COPY backend/ ./backend/
 
-# Build and install Drogon from vendored source
-RUN mkdir -p backend/drogon/build && cd backend/drogon/build && \
+# 🔧 FIX: clone Drogon WITH submodules so trantor exists
+RUN rm -rf backend/drogon && \
+    git clone --recurse-submodules https://github.com/drogonframework/drogon.git backend/drogon && \
+    mkdir -p backend/drogon/build && cd backend/drogon/build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_CTL=OFF && \
-    make -j$(nproc) && \
+    make -j"$(nproc)" && \
     make install
 
-# Build the app
+# Build your app
 RUN mkdir -p backend/build && cd backend/build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
-    make -j$(nproc)
+    make -j"$(nproc)"
 
 # ─────────────────────────────────────────
 # Stage 2: Build React frontend
@@ -48,7 +50,12 @@ RUN apt-get update && apt-get install -y \
     libssl3 zlib1g libjsoncpp25 \
     libspdlog1 libc-ares2 \
     supervisor \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Copy Drogon + Trantor shared libs from builder
+COPY --from=cpp-builder /usr/local/lib/ /usr/local/lib/
+RUN ldconfig
 
 # Copy backend binary
 COPY --from=cpp-builder /app/backend/build/hello_server /usr/local/bin/hello_server
@@ -64,5 +71,4 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 80
-
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
