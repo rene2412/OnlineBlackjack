@@ -70,5 +70,5 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Supervisor config (runs nginx + drogon together)
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-EXPOSE 80
+EXPOSE 8080
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

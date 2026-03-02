@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     }
 
     drogon::app()
-        .addListener("0.0.0.0", 8080);
+        .addListener("127.0.0.1", 8081);
     
     //Load config file
     drogon::app().registerHandler("/api/shuffle",
