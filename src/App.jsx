@@ -14,7 +14,6 @@ const DEAL_INTERVAL  = 340;
 const CARD_ANIM_MS   = 820; // per dealer card during dealerHit
 const SWEEP_DURATION = 600;
 
-
 export default function App() {
   const [state, dispatch]    = useReducer(gameReducer, initialState);
   const stateRef             = useRef(state);
@@ -26,7 +25,8 @@ export default function App() {
   const wsQueueRef           = useRef([]);
   const postDealQueueRef     = useRef([]); // sequential queue for insurance/split/blackjack
   const postDealFiredRef     = useRef(false);
-  const modalActiveRef       = useRef(false); // true while a modal is showing
+  const modalActiveRef       = useRef(false);
+  const splitInitCountsRef   = useRef(null); // non-null while collecting init counts for split
   const parsedShoeRef        = useRef([]); // full persistent shoe — survives rounds
   const shoePositionRef      = useRef(0);  // current position in persistent shoe
   const shoeInitializedRef   = useRef(false); // have we sent the shoe to backend yet
@@ -34,7 +34,12 @@ export default function App() {
   const [sweeping, setSweeping]         = useState(false);
   const [showCounters, setShowCounters] = useState(false);
   const [holeRevealed, setHoleRevealed] = useState(false);
-  const [reshuffling, setReshuffling]   = useState(false); // reshuffle animation
+  const [reshuffling, setReshuffling]   = useState(false);
+  const [landed, setLanded]             = useState(false); // false = landing page, true = table
+  const [connecting, setConnecting]     = useState(false); // show spinner after Play Now
+  const [splitRevealIndex, setSplitRevealIndex] = useState(-1);
+  const [splitBanner, setSplitBanner]           = useState({ text: null, type: null });
+  const [splitRevealPending, setSplitRevealPending] = useState(false);
   // Extra delay before sweep — set when dealerHit fires so we wait for last card
   const sweepExtraDelayRef  = useRef(0);
   const pendingOutcomeRef   = useRef(null);
@@ -44,6 +49,34 @@ export default function App() {
   const [, forceTimerTick] = useState(0);
   useEffect(() => { stateRef.current = state; },       [state]);
   useEffect(() => { addToastRef.current = addToast; }, [addToast]);
+
+  // When splitRoundDone fires, animate each hand sequentially using live state
+  useEffect(() => {
+    if (!splitRevealPending) return;
+    setSplitRevealPending(false);
+    const hands = state.splitHands;
+    console.log("[splitReveal] hands at reveal time:", hands.map((h,i) => `hand${i}: won=${h.won} busted=${h.busted}`));
+    const STEP = 2600;
+    let bannerKey = 0;
+    hands.forEach((hand, idx) => {
+      const t = setTimeout(() => {
+        setSplitRevealIndex(idx);
+        let text, type;
+        if (hand.busted)            { text = `HAND ${idx+1} BUST`;  type = "bust"; }
+        else if (hand.won === true)  { text = `HAND ${idx+1} WINS`;  type = "win";  }
+        else if (hand.won === false) { text = `HAND ${idx+1} LOSES`; type = "bust"; }
+        else                         { text = `HAND ${idx+1} PUSH`;  type = "push"; }
+        setSplitBanner({ text, type, key: ++bannerKey });
+      }, idx * STEP);
+      timersRef.current.push(t);
+    });
+    const done = setTimeout(() => {
+      setSplitRevealIndex(-1);
+      setSplitBanner({ text: null, type: null });
+      dispatch({ type:"SPLIT_ROUND_DONE" });
+    }, hands.length * STEP + 1000);
+    timersRef.current.push(done);
+  }, [splitRevealPending]);
   useEffect(() => {
     const interval = setInterval(() => forceTimerTick(t => t + 1), 1000);
     return () => clearInterval(interval);
@@ -53,13 +86,15 @@ export default function App() {
   function fireNextPostDeal() {
     if (modalActiveRef.current) return;
     const next = postDealQueueRef.current.shift();
-    if (!next) return;
+    if (!next) {
+      dispatch({ type:"UNLOCK_ACTIONS" });
+      return;
+    }
     console.log(`[postDeal] firing ${next.event} at`, Date.now());
-    // Only hold modalActive for events that show a modal requiring user input
+    dispatch({ type:"UNLOCK_ACTIONS" }); // unlock before showing prompt
     const isModal = ["playerInsuranceChoice", "playerSplitChoice"].includes(next.event);
     if (isModal) modalActiveRef.current = true;
     processEvent(next);
-    // Non-modal events (blackjack outcomes) fire and free the queue immediately
     if (!isModal) fireNextPostDeal();
   }
 
@@ -215,7 +250,10 @@ export default function App() {
       }
 
       case "playerInsuranceChoice": dispatch({ type:"SHOW_INSURANCE"   }); break;
-      case "playerSplitChoice":     dispatch({ type:"SHOW_SPLIT_PROMPT"}); break;
+      case "playerSplitChoice":
+        splitInitCountsRef.current = []; // arm collector now — updateCount arrives fast after yes
+        dispatch({ type:"SHOW_SPLIT_PROMPT" });
+        break;
 
       case "playerBlackJack": {
         const payout = Math.floor(s.wager * 1.5);
@@ -227,15 +265,25 @@ export default function App() {
 
       case "dealerBlackjack": {
         const payload = { outcome:"bust", text:"DEALER BLACKJACK", newBalance: s.balance - s.wager };
-        toast("Dealer has Blackjack!", "bust");
-        triggerSweep(payload);
+        dispatch({ type:"REVEAL_DEALER_HOLE" });
+        setHoleRevealed(true);
+        const t = setTimeout(() => {
+          toast("Dealer has Blackjack!", "bust");
+          triggerSweep(payload);
+        }, 1400);
+        timersRef.current.push(t);
         break;
       }
 
       case "blackjackPush": {
         const payload = { outcome:"push", text:"PUSH — BOTH BLACKJACK" };
-        toast("Both Blackjack — Push!", "push");
-        triggerSweep(payload);
+        dispatch({ type:"REVEAL_DEALER_HOLE" });
+        setHoleRevealed(true);
+        const t = setTimeout(() => {
+          toast("Both Blackjack — Push!", "push");
+          triggerSweep(payload);
+        }, 1400);
+        timersRef.current.push(t);
         break;
       }
 
@@ -244,17 +292,75 @@ export default function App() {
         break;
       }
 
-      case "firstSplitCounter":  dispatch({ type:"UPDATE_PLAYER_COUNT", payload:msg.count }); break;
-      case "secondSplitCounter": dispatch({ type:"INIT_SPLIT", payload:{counts:[s.playerCount,msg.count]}}); break;
-      case "newSplitCounter": {
-        const ex = s.splitHands.map(h=>h.count);
-        dispatch({ type:"INIT_SPLIT", payload:{counts:[...ex,msg.count]}}); break;
+      case "updateCount": {
+        if (splitInitCountsRef.current !== null) {
+          splitInitCountsRef.current.push(msg.count);
+          // Only need first count to init — second card is on the other hand
+          if (splitInitCountsRef.current.length >= 1) {
+            const counts = [...splitInitCountsRef.current];
+            splitInitCountsRef.current = null;
+            // Build second hand count from playerHand[1] value
+            const hand2Count = s.playerHand[1]?.value ?? 0;
+            dispatch({ type:"INIT_SPLIT", payload:{ counts: [counts[0], hand2Count] }});
+          }
+        } else if (s.splitMode) {
+          dispatch({ type:"UPDATE_SPLIT_HAND_COUNT", payload:{ handIndex: s.currentSplitHand, count: msg.count }});
+        } else {
+          dispatch({ type:"UPDATE_PLAYER_COUNT", payload: msg.count });
+        }
+        break;
       }
-      case "splitHit":        dispatch({ type:"SPLIT_HIT_HAND",    payload:{handIndex:msg.currentHand, count:msg.currentHandCount}}); break;
-      case "playerSplitBust": dispatch({ type:"SPLIT_BUST_HAND",   payload:msg.hand }); toast(`Hand ${msg.hand+1} busted`,"bust"); break;
-      case "playerSplitWin":  dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount, won:true,  newBalance:msg.updateBalance}}); toast(`Hand ${msg.handCount+1} wins!`,"win"); break;
-      case "dealerSplitWin":  dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount, won:false, newBalance:msg.updateBalance}}); toast(`Dealer wins hand ${msg.handCount+1}`,"bust"); break;
-      case "playerSplitPush": dispatch({ type:"SPLIT_RESOLVE_HAND",payload:{handIndex:msg.handCount, won:null,  newBalance:s.balance}}); toast(`Hand ${msg.handCount+1} — push`,"push"); break;
+
+      case "secondSplitCounter":
+        dispatch({ type:"INIT_SPLIT", payload:{ counts:[s.playerCount, msg.count] }});
+        break;
+
+      case "newSplitCounter": {
+        const ex = s.splitHands.map(h => h.count);
+        dispatch({ type:"INIT_SPLIT", payload:{ counts:[...ex, msg.count] }});
+        break;
+      }
+
+      case "splitHit":
+        dispatch({ type:"SPLIT_HIT_HAND", payload:{ handIndex: s.currentSplitHand, count: msg.currentHandCount }});
+        break;
+
+      case "playerSplitBust":
+        dispatch({ type:"SPLIT_BUST_HAND", payload: msg.hand });
+        dispatch({ type:"UPDATE_BALANCE", payload: msg.updateBalance });
+        toast(`Hand ${msg.hand + 1} busted`, "bust");
+        break;
+
+      case "playerSplitWin":
+        dispatch({ type:"SPLIT_RESOLVE_HAND", payload:{ handIndex: msg.handCount, won: true,  newBalance: msg.updateBalance }});
+        break;
+
+      case "dealerSplitWin":
+        dispatch({ type:"SPLIT_RESOLVE_HAND", payload:{ handIndex: msg.handCount, won: false, newBalance: msg.updateBalance }});
+        break;
+
+      case "playerSplitPush":
+        dispatch({ type:"SPLIT_RESOLVE_HAND", payload:{ handIndex: msg.handCount, won: null, newBalance: msg.updateBalance ?? s.balance }});
+        break;
+
+      case "playerSplitBlackjack":
+        dispatch({ type:"SPLIT_RESOLVE_HAND", payload:{ handIndex: msg.handCount, won: true, newBalance: msg.updateBalance }});
+        break;
+
+      case "splitRoundDone": {
+        // Wait for dealer to finish drawing before revealing results
+        const waitForDealer = () => {
+          if (!dealerAnimDoneRef.current) {
+            const t = setTimeout(waitForDealer, 200);
+            timersRef.current.push(t);
+          } else {
+            setSplitRevealPending(true);
+          }
+        };
+        const t = setTimeout(waitForDealer, 400);
+        timersRef.current.push(t);
+        break;
+      }
       default: break;
     }
   }, []);
@@ -370,6 +476,7 @@ export default function App() {
 
       // After breathing room, fire first post-deal event (rest fire after each modal dismiss)
       if (postDealQueueRef.current.length > 0) {
+        dispatch({ type:"LOCK_ACTIONS" }); // lock until prompt shows
         const t = setTimeout(() => fireNextPostDeal(), 1800);
         timersRef.current.push(t);
       }
@@ -421,11 +528,21 @@ export default function App() {
   async function handleSplit(yes) {
     dispatch({ type:"HIDE_SPLIT_PROMPT" });
     modalActiveRef.current = false;
-    fireNextPostDeal(); // fire next queued event if any
-    if (yes) await api.sendSplit(true);
+    fireNextPostDeal();
+    if (yes) {
+      splitInitCountsRef.current = null;
+      dispatch({ type:"INIT_SPLIT", payload:{ counts:[0, 0] } }); // enter split mode now
+      await api.sendSplit(true);
+    } else {
+      splitInitCountsRef.current = null;
+    }
   }
   async function handleSplitDecision(action) {
+    console.log("[split] handleSplitDecision called", action, "locked:", state.actionsLocked, "splitMode:", state.splitMode, "hand:", state.currentSplitHand);
     dispatch({ type:"LOCK_ACTIONS" });
+    if (action === "stand") {
+      dispatch({ type:"ADVANCE_SPLIT_HAND", payload: state.currentSplitHand + 1 });
+    }
     await api.sendSplitDecision(action, state.currentSplitHand);
   }
 
@@ -438,6 +555,8 @@ export default function App() {
     sessionWins, sessionLosses, sessionPushes, sessionStart, sessionEnded, sessionEndedAt, startingBalance,
   } = state;
 
+  const now        = new Date();
+  const clockStr   = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
   const betAmount  = phase === "wager" ? stagedWager : wager;
   const isPlaying  = phase === "playing";
   const isWagering = phase === "wager";
@@ -461,20 +580,36 @@ export default function App() {
 
   return (
     <>
-      {!connected && (
+      {(!landed || !connected) && (
         <div className="conn-overlay">
           <div className="conn-inner">
             <div className="conn-suits">♠ ♥ ♦ ♣</div>
             <h1 className="conn-title">BLACKJACK</h1>
             <div className="conn-divider" />
-            <div className="conn-spinner" />
-            <p className="conn-status">Connecting to table…</p>
+
+            {!connecting && !landed && (
+              <>
+                <p className="conn-tagline">Casino-grade. No house advantage.</p>
+                <button className="btn btn--play-now" onClick={() => {
+                  setConnecting(true);
+                  setTimeout(() => setLanded(true), 2200);
+                }}>Play Now ›</button>
+              </>
+            )}
+
+            {connecting && !connected && (
+              <>
+                <div className="conn-spinner" />
+                <p className="conn-status">Connecting to table…</p>
+              </>
+            )}
           </div>
         </div>
       )}
 
       <Toasts toasts={toasts} />
       <ResultBanner text={resultText} type={outcome} />
+      <ResultBanner key={splitBanner.key} text={splitBanner.text} type={splitBanner.type} />
 
       {/* ── SESSION ENDED OVERLAY ── */}
       {sessionEnded && (
@@ -514,7 +649,10 @@ export default function App() {
               </div>
             </div>
             <button className="btn btn--deal btn--wide"
-              onClick={() => window.location.reload()}>New Session</button>
+              onClick={async () => {
+                await api.sendEndSession().catch(() => {});
+                window.location.reload();
+              }}>New Session</button>
           </div>
         </div>
       )}
@@ -541,6 +679,8 @@ export default function App() {
         body="You've been dealt a matching pair. Split into two hands?"
         yesLabel="Split" noLabel="Stay"
         onYes={() => handleSplit(true)} onNo={() => handleSplit(false)} />
+
+      <div className="top-clock">{clockStr}</div>
 
       <div className="room">
         <div className="ceiling-light" />
@@ -616,23 +756,39 @@ export default function App() {
 
                 {splitMode && (
                   <div className={["split-row", sweeping ? "hand-area--sweep-down" : ""].filter(Boolean).join(" ")}>
-                    {splitHands.map((hand, idx) => (
-                      <div key={idx} className={["split-hand-block",
-                        idx === currentSplitHand ? "split-hand-block--active" : "",
-                      ].join(" ")}>
-                        <div className="split-hand-title">Hand {idx + 1}</div>
-                        <div className={["hand-area",
-                          hand.busted     ? "hand-area--loser"  : "",
-                          hand.won===true ? "hand-area--winner" : "",
+                    {splitHands.map((hand, idx) => {
+                      const isRevealing = splitRevealIndex === idx;
+                      const wasRevealed = splitRevealIndex > idx;
+                      const showWin  = isRevealing && hand.won === true  && !hand.busted;
+                      const showLoss = isRevealing && (hand.won === false || hand.busted);
+                      const dimmed   = wasRevealed && (hand.won === false || hand.busted);
+                      return (
+                        <div key={idx} className={["split-hand-block",
+                          idx === currentSplitHand && splitRevealIndex === -1 ? "split-hand-block--active" : "",
+                          hand.busted  ? "split-hand-block--busted" : "",
                         ].filter(Boolean).join(" ")}>
-                          {hand.cards.map((c, ci) => (
-                            <Card key={ci} rank={c.rank} suit={c.suit}
-                              color={c.color} symbol={c.symbol} dealing delay={ci * 100} />
-                          ))}
+                          <div className="split-hand-title">Hand {idx + 1}</div>
+                          <div className="count-above-wrap">
+                            <CountRing
+                              key={`split-${idx}-${hand.count}`}
+                              count={hand.count}
+                              animate={idx === currentSplitHand}
+                            />
+                          </div>
+                          <div className={["split-hand-cards",
+                            showWin  ? "split-hand-cards--win"  : "",
+                            showLoss ? "split-hand-cards--loss" : "",
+                            dimmed   ? "split-hand-cards--dim"  : "",
+                          ].filter(Boolean).join(" ")}>
+                            {hand.cards.map((c, ci) => (
+                              <Card key={ci} rank={c.rank} suit={c.suit}
+                                color={c.color} symbol={c.symbol}
+                                dealing delay={ci * 100} />
+                            ))}
+                          </div>
                         </div>
-                        <CountRing count={hand.count} />
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </section>
@@ -761,6 +917,10 @@ export default function App() {
                   postDealQueueRef.current = [];
                   postDealFiredRef.current = false;
                   modalActiveRef.current   = false;
+                  splitInitCountsRef.current = null;
+                  setSplitRevealIndex(-1);
+                  setSplitBanner({ text: null, type: null });
+                  setSplitRevealPending(false);
                   await api.sendNextGame().catch(() => {});
                   dispatch({ type:"NEXT_ROUND" });
                 }}>Next Game ›</button>

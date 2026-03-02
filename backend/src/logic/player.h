@@ -22,6 +22,7 @@ class Player {
 	   int losses;
 	   int wager;
 	   bool ace;
+	   bool doubleAce; 
 	   bool bust;
 	   bool decision; //0 for stand, 1 for hit
    public:
@@ -32,6 +33,7 @@ class Player {
 		    wager = 0;
 			decision = 1;
 			ace = false;
+			doubleAce = false;
 		}
 	   
 	   const std::deque<int> &GetDeck() const { return cards; }
@@ -44,6 +46,7 @@ class Player {
 	   bool GetBust() const { return bust; }
 	   bool GetDecision() const { return decision; }
 	   bool GetAce() const { return ace; }
+	   bool GetDoubleAce() const { return doubleAce; }  
 	   uint8_t GetAceHand(size_t index) const { return doesHandContainAce[index]; }
 	   
 	   void SetBalance(int newBalance) { balance = newBalance; }
@@ -52,7 +55,7 @@ class Player {
 	   void SetDecision(bool newDecision) { decision = newDecision; }
 	   void SetAce(bool newState) { ace = newState; }
 	   void SetAceHand(size_t index, bool newState) { doesHandContainAce[index] = newState; }  
-	   
+	   void SetDoubleAce(bool a) { doubleAce = a; }
 	   void push_back(int N) { cards.push_back(N); }
 	   void insert_suits(char N) { suits.push_back(N); }  
 	   void insertHands(std::deque<int> hands) { splitHands.push_back(hands); } 

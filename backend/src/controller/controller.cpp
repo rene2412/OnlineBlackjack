@@ -130,6 +130,7 @@ void GameController::Split(const drogon::HttpRequestPtr &req,
 void GameController::SplitDecision(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
     auto json = req->getJsonObject();
     if (!json || !json->isMember("action") || !json->isMember("handIndex")) {
+        std::cout << "Invalid JSON\n";
         auto resp = drogon::HttpResponse::newHttpJsonResponse(
             Json::Value("Invalid split action payload"));
         resp->setStatusCode(drogon::k400BadRequest);
@@ -146,9 +147,9 @@ void GameController::SplitDecision(const drogon::HttpRequestPtr &req, std::funct
         callback(drogon::HttpResponse::newHttpResponse());
         return;
     }
-
     if (action == "hit") {
-        //std::cout << "Ready To HIT hand: " << game.GetCurrentHand() << std::endl;
+        std::cout << "Ready To HIT hand: " << game.GetCurrentHand() << std::endl;
+
         game.Split(game.GetPlayers(), deck.GetDeck(), deck.GetSuitsDeck(), 0, action); 
         game.SetOnDeal(false);
     }
@@ -191,14 +192,21 @@ void GameController::NextGame(const drogon::HttpRequestPtr &req, std::function<v
         auto &dealer = game.GetDealerInstance();
         auto &deck = game.GetDeckInstance();
         auto player = game.GetPlayers()[0];
-        player->SetBust(false);
-        player->ClearHand();
 		dealer.ClearHand();
-        std::cout << "Cleared table\n";
+        dealer.SetAce(false);
         if (player->GetBalance() <= 0) {
             std::cout << "Player has ran out of money, end game and display stats" << std::endl;
             std::string endGame = "{\"event\": \"endGame\"}";
                 GameWebSocketController::EventAPI(endGame); 
+        }
+        std::cout << "Cleared table\n";
+        //clear variables
+        for (auto& player : game.GetPlayers()) {
+            player->SetBust(false);
+            player->ClearHand();
+            player->SetDecision(false);
+            player->SetAce(false);
+            player->SetDoubleAce(false);
         }
         //reverse(deck.GetDeck().begin(), deck.GetDeck().end());
 		//reverse(deck.GetSuitsDeck().begin(), deck.GetSuitsDeck().end());
@@ -213,6 +221,8 @@ void GameController::NextGame(const drogon::HttpRequestPtr &req, std::function<v
                 GameWebSocketController::EventAPI(split); 
 	    }   
     }
+
+
         Json::Value result;
         result["message"] = "Successful Connection";
         result["action"] = action;
@@ -220,4 +230,26 @@ void GameController::NextGame(const drogon::HttpRequestPtr &req, std::function<v
         callback(resp);
 
     } catch(...) {}
+}
+
+void GameController::EndSession(const drogon::HttpRequestPtr &req,
+    std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+
+    auto &game   = Game::GetGameInstance();
+    auto &dealer = game.GetDealerInstance();
+    auto &deck   = game.GetDeckInstance();
+    std::cout << "Clearing data for new session\n";
+    dealer.ClearHand();
+    dealer.SetAce(false);
+    for (auto& player : game.GetPlayers()) {
+            player->SetBust(false);
+            player->ClearHand();
+            player->SetDecision(false);
+            player->SetAce(false);
+            player->SetDoubleAce(false);
+        }
+  
+    Json::Value result;
+    result["ok"] = true;
+    callback(drogon::HttpResponse::newHttpJsonResponse(result));
 }

@@ -212,18 +212,33 @@ export function gameReducer(state, action) {
       return { ...state, balance: action.payload };
 
     case "INIT_SPLIT": {
-      const hands = action.payload.counts.map((count, idx) => {
-        // Each split hand starts with the card already in the player hand
-        const card = state.playerHand[idx] || { rank:"?", suit:"S", value:count, color:"black", symbol:"♠" };
-        return { cards: [card], count, busted: false, resolved: false, won: null };
-      });
+      const hands = state.playerHand.map((card, idx) => ({
+        cards:    [{ ...card, hidden: false }],
+        count:    action.payload.counts[idx] ?? card.value,
+        busted:   false,
+        resolved: false,
+        won:      null,
+      }));
       return {
         ...state,
+        phase:            "playing",
         splitMode:        true,
         splitHands:       hands,
         currentSplitHand: 0,
         actionsLocked:    false,
       };
+    }
+
+    case "UPDATE_SPLIT_HAND_COUNT": {
+      const hands = state.splitHands.map((h, i) =>
+        i === action.payload.handIndex ? { ...h, count: action.payload.count } : h
+      );
+      return { ...state, splitHands: hands };
+    }
+
+    case "ADVANCE_SPLIT_HAND": {
+      const next = Math.min(action.payload, state.splitHands.length - 1);
+      return { ...state, currentSplitHand: next, actionsLocked: false };
     }
 
     case "SPLIT_HIT_HAND": {
@@ -243,19 +258,32 @@ export function gameReducer(state, action) {
       const hands = state.splitHands.map((h, i) =>
         i === action.payload ? { ...h, busted: true, resolved: true } : h
       );
-      return { ...state, splitHands: hands, currentSplitHand: state.currentSplitHand + 1 };
+      const next = Math.min(state.currentSplitHand + 1, hands.length - 1);
+      return { ...state, splitHands: hands, currentSplitHand: next };
     }
 
     case "SPLIT_RESOLVE_HAND": {
       const hands = state.splitHands.map((h, i) =>
         i === action.payload.handIndex ? { ...h, resolved: true, won: action.payload.won } : h
       );
-      const allDone = hands.every(h => h.resolved);
       return {
         ...state,
         splitHands: hands,
         balance:    action.payload.newBalance ?? state.balance,
-        phase:      allDone ? "result" : state.phase,
+      };
+    }
+
+    case "SPLIT_ROUND_DONE": {
+      // Count wins and losses across all split hands for session stats
+      const wins   = state.splitHands.filter(h => h.won === true).length;
+      const losses = state.splitHands.filter(h => h.won === false || h.busted).length;
+      const pushes = state.splitHands.filter(h => h.won === null && !h.busted).length;
+      return {
+        ...state,
+        phase:         "result",
+        sessionWins:   state.sessionWins   + wins,
+        sessionLosses: state.sessionLosses + losses,
+        sessionPushes: state.sessionPushes + pushes,
       };
     }
 

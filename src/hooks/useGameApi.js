@@ -3,11 +3,13 @@ import { useCallback } from "react";
 const API_BASE = "http://localhost:8080";
 
 async function post(endpoint, body) {
+  console.log(`[api] POST ${endpoint}`, body);
   const res = await fetch(`${API_BASE}${endpoint}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+  console.log(`[api] ${endpoint} response:`, res.status);
   if (!res.ok) throw new Error(`HTTP ${res.status} on ${endpoint}`);
   return res.json();
 }
@@ -51,10 +53,15 @@ export default function useGameApi() {
     return post("/api/player-split-decision", { action, handIndex });
   }, []);
 
-  // POST /api/next-game — GameController::SplitDecision() (reset handler)
+  // POST /api/next-game — GameController::NextGame() (reset handler)
   const sendNextGame = useCallback(() => {
-    return post("/api/next-game", {action: "next-game"});
+    console.log("[api] POST /api/next-game");
+    return post("/api/next-game", { action: "next-game" });
   }, []);
 
-  return { sendWager, sendShuffle, sendDecision, sendInsurance, sendSplit, sendSplitDecision, sendNextGame };
+  const sendEndSession = useCallback(() => {
+    return post("/api/end-session", {});
+  }, []);
+
+  return { sendWager, sendShuffle, sendDecision, sendInsurance, sendSplit, sendSplitDecision, sendNextGame, sendEndSession };
 }

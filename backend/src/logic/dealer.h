@@ -22,7 +22,7 @@ class Dealer {
 	   void insert_suits(char N) { suits.push_back(N); }
 	   
 	   void ClearHand() { cards.clear(); }  
-
+	   void ClearSuitHand() { suits.clear(); }
 	   int firstCard() {
 			return cards[0];
 	   }

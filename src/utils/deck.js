@@ -25,6 +25,24 @@ export function generateShoe(numDecks = 6) {
 }
 
 /**
+ * Generate a shoe with a forced split hand at the top for testing.
+ * Deal order D-P-D-P: positions 1 and 3 are player cards.
+ * e.g. "AS" forces player to get A+A (split eligible).
+ */
+export function generateSplitTestShoe(splitRank = 'A') {
+  const shoe = generateShoe(6);
+  // Remove 2 cards of splitRank from wherever they are
+  const firstIdx  = shoe.findIndex(c => c.startsWith(splitRank));
+  const [card1]   = shoe.splice(firstIdx, 1);
+  const secondIdx = shoe.findIndex(c => c.startsWith(splitRank));
+  const [card2]   = shoe.splice(secondIdx, 1);
+  // Insert at positions 1 and 3 (player cards in D-P-D-P order)
+  shoe.splice(1, 0, card1); // position 1
+  shoe.splice(3, 0, card2); // position 3
+  return shoe;
+}
+
+/**
  * Parse a card string into display data.
  * "AH"  → { rank:"A",  suit:"H", value:11, color:"red",   symbol:"♥" }
  * "10D" → { rank:"10", suit:"D", value:10, color:"red",   symbol:"♦" }
