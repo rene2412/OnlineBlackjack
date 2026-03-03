@@ -226,6 +226,7 @@ export function gameReducer(state, action) {
         splitHands:       hands,
         currentSplitHand: 0,
         actionsLocked:    false,
+        showSplitPrompt:  false,  // always clear modal
       };
     }
 

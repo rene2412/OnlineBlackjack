@@ -16,6 +16,7 @@ void GameWebSocketController::handleNewConnection(const HttpRequestPtr &req, con
 			connection->send(updateCount);
     }  
     Dealer &dealer = game.GetDealerInstance();
+    dealer.ClearHand();
     int dealerCount = dealer.GetSum()[0];
     std::string updateDealerCount = "{\"event\": \"updateDealerCount\", \"count\": " + std::to_string(dealerCount) + "}";
     connection->send(updateDealerCount);

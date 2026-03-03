@@ -108,14 +108,15 @@ void GameController::Split(const drogon::HttpRequestPtr &req,
         std::cout << "Player action received: " << action << std::endl;
         auto &game = Game::GetGameInstance();
         auto &deck = game.GetDeckInstance();
+        auto &players = game.GetPlayers();
+        auto &gameDeck = deck.GetDeck();
+        auto &gameSuitDeck = deck.GetSuitsDeck(); 
         if (action == "yes") {
             std::cout << "HTTP Request: Ready to split\n";
             game.SetSplitState(true);
             game.SetOnDeal(true);
-            for (auto &player : game.GetPlayers()) { 
-                int firstCard = player->cardAt(0);
-                std::string playerCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(firstCard) + "}";
-                GameWebSocketController::EventAPI(playerCount); 
+            for (int i = 0; i < players.size(); i++) {
+                game.Split(players, gameDeck, gameSuitDeck, i, "yes");
             }
         }
         Json::Value result;
@@ -150,11 +151,12 @@ void GameController::SplitDecision(const drogon::HttpRequestPtr &req, std::funct
     if (action == "hit") {
         std::cout << "Ready To HIT hand: " << game.GetCurrentHand() << std::endl;
 
-        game.Split(game.GetPlayers(), deck.GetDeck(), deck.GetSuitsDeck(), 0, action); 
+        //game.Split(game.GetPlayers(), deck.GetDeck(), deck.GetSuitsDeck(), 0, action); 
+        game.HitMultipleHands(game.GetPlayers(), deck.GetDeck(), 0);
         game.SetOnDeal(false);
     }
     else if (action == "stand") {
-        //std::cout << "USER STANDS ON HAND: " << game.GetCurrentHand() << std::endl;
+        std::cout << "USER STANDS ON HAND: " << game.GetCurrentHand() << std::endl;
         int currentPlayer = game.GetCurrentPlayer();
         int currentHand = game.GetCurrentHand() + 1;
         auto &players = game.GetPlayers(); 

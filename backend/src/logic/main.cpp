@@ -32,10 +32,9 @@ int main(int argc, char* argv[]) {
 	  Player player("Rene Hernandez", 1000, 0, 0, false); 
 	  game.push_back(player);
     }
-
+	
     drogon::app()
         .addListener("127.0.0.1", 8081);
-    
     //Load config file
     drogon::app().registerHandler("/api/shuffle",
         [&card_deck, &game, &dealer](const drogon::HttpRequestPtr &req,

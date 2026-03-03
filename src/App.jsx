@@ -14,6 +14,7 @@ const DEAL_INTERVAL  = 340;
 const CARD_ANIM_MS   = 820; // per dealer card during dealerHit
 const SWEEP_DURATION = 600;
 
+
 export default function App() {
   const [state, dispatch]    = useReducer(gameReducer, initialState);
   const stateRef             = useRef(state);
@@ -83,18 +84,22 @@ export default function App() {
   }, []);
 
   // Fire post-deal events one at a time — next fires only after modal is dismissed
+  const firingPostDealRef = useRef(false);
   function fireNextPostDeal() {
     if (modalActiveRef.current) return;
+    if (firingPostDealRef.current) return;
     const next = postDealQueueRef.current.shift();
     if (!next) {
       dispatch({ type:"UNLOCK_ACTIONS" });
       return;
     }
+    firingPostDealRef.current = true;
     console.log(`[postDeal] firing ${next.event} at`, Date.now());
-    dispatch({ type:"UNLOCK_ACTIONS" }); // unlock before showing prompt
+    dispatch({ type:"UNLOCK_ACTIONS" });
     const isModal = ["playerInsuranceChoice", "playerSplitChoice"].includes(next.event);
     if (isModal) modalActiveRef.current = true;
     processEvent(next);
+    firingPostDealRef.current = false;
     if (!isModal) fireNextPostDeal();
   }
 
@@ -124,10 +129,6 @@ export default function App() {
       case "__connected":    dispatch({ type:"SET_CONNECTED", payload:true  }); break;
       case "__disconnected": dispatch({ type:"SET_CONNECTED", payload:false }); break;
 
-      case "updateCount":
-        dispatch({ type:"UPDATE_PLAYER_COUNT", payload: msg.count });
-        break;
-
       case "updateDealerCount":
         // Only used outside of dealerHit flow (e.g. initial deal)
         if (dealerAnimDoneRef.current) {
@@ -137,6 +138,7 @@ export default function App() {
 
       case "hit":
         dispatch({ type:"HIT_PLAYER_FROM_SHOE" });
+        dispatch({ type:"UNLOCK_ACTIONS" });
         break;
 
       case "dealerHit": {
@@ -377,13 +379,15 @@ export default function App() {
       "playerBlackJack", "dealerBlackjack", "blackjackPush",
     ];
     if (postDeal.includes(msg.event)) {
-      console.log(`[handleMessage] ${msg.event} arrived at`, Date.now(), `postDealFired=${postDealFiredRef.current} isDeal=${isDealingRef.current}`);
-      if (postDealFiredRef.current) {
-        postDealQueueRef.current.push(msg);
-        const t = setTimeout(() => fireNextPostDeal(), 1800);
-        timersRef.current.push(t);
-      } else {
-        postDealQueueRef.current.push(msg);
+      const alreadyQueued = postDealQueueRef.current.some(e => e.event === msg.event);
+      if (alreadyQueued) {
+        console.warn(`[handleMessage] duplicate ${msg.event} dropped`);
+        return;
+      }
+      console.log(`[handleMessage] ${msg.event} queued, postDealFired=${postDealFiredRef.current}`);
+      postDealQueueRef.current.push(msg);
+      if (postDealFiredRef.current && !modalActiveRef.current) {
+        fireNextPostDeal();
       }
       return;
     }
@@ -430,12 +434,11 @@ export default function App() {
     pendingOutcomeRef.current   = null;
     dealerCardIndexRef.current  = 0;
 
-    isDealingRef.current     = true;
-    wsQueueRef.current       = [];
-    // NOTE: do NOT clear postDealQueueRef here — events like dealerBlackjack
-    // may arrive before deal starts and must survive into the flush
-    postDealFiredRef.current = false;
-    modalActiveRef.current   = false;
+    isDealingRef.current      = true;
+    wsQueueRef.current        = [];
+    postDealFiredRef.current  = false;
+    modalActiveRef.current    = false;
+    firingPostDealRef.current = false;
     timersRef.current.forEach(clearTimeout);
     timersRef.current = [];
 
@@ -520,21 +523,25 @@ export default function App() {
     } catch { dispatch({ type:"UNLOCK_ACTIONS" }); }
   }
   async function handleInsurance(yes) {
+    console.log("[insurance] handleInsurance called", yes);
+    modalActiveRef.current   = false;
+    firingPostDealRef.current = false;
     dispatch({ type:"HIDE_INSURANCE" });
-    modalActiveRef.current = false;
-    fireNextPostDeal(); // fire next queued event (e.g. split prompt)
+    setTimeout(() => fireNextPostDeal(), 0);
     await api.sendInsurance(yes ? "yes" : "no");
   }
   async function handleSplit(yes) {
+    modalActiveRef.current    = false;
+    firingPostDealRef.current = false;
     dispatch({ type:"HIDE_SPLIT_PROMPT" });
-    modalActiveRef.current = false;
-    fireNextPostDeal();
     if (yes) {
       splitInitCountsRef.current = null;
-      dispatch({ type:"INIT_SPLIT", payload:{ counts:[0, 0] } }); // enter split mode now
+      dispatch({ type:"INIT_SPLIT", payload:{ counts:[0, 0] } });
+      setTimeout(() => fireNextPostDeal(), 0);
       await api.sendSplit(true);
     } else {
       splitInitCountsRef.current = null;
+      setTimeout(() => fireNextPostDeal(), 0);
     }
   }
   async function handleSplitDecision(action) {
@@ -589,7 +596,8 @@ export default function App() {
 
             {!connecting && !landed && (
               <>
-                <p className="conn-tagline">Casino-grade. No house advantage.</p>
+                <p className="conn-tagline">No Real Money. Just Casino Blackjack Vibes.</p>
+                <p className="conn-tagline">Created By: Rene Hernandez</p>
                 <button className="btn btn--play-now" onClick={() => {
                   setConnecting(true);
                   setTimeout(() => setLanded(true), 2200);
@@ -597,7 +605,7 @@ export default function App() {
               </>
             )}
 
-            {connecting && !connected && (
+            {connecting && !landed && (
               <>
                 <div className="conn-spinner" />
                 <p className="conn-status">Connecting to table…</p>
@@ -671,7 +679,7 @@ export default function App() {
       )}
 
       <Modal open={showInsurance} suit="♠" title="Insurance?"
-        body="Dealer is showing an Ace. Take insurance for half your wager?"
+        body="Dealer is showing an Ace or a Ten. Take insurance for half your wager?"
         yesLabel="Take Insurance" noLabel="Decline"
         onYes={() => handleInsurance(true)} onNo={() => handleInsurance(false)} />
 
@@ -917,6 +925,7 @@ export default function App() {
                   postDealQueueRef.current = [];
                   postDealFiredRef.current = false;
                   modalActiveRef.current   = false;
+                  firingPostDealRef.current = false;
                   splitInitCountsRef.current = null;
                   setSplitRevealIndex(-1);
                   setSplitBanner({ text: null, type: null });
