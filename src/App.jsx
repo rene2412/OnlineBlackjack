@@ -2,7 +2,7 @@ import React, { useEffect, useState, useReducer, useCallback, useRef } from "rea
 import { gameReducer, initialState } from "./store/gameStore";
 import useGameSocket from "./hooks/useGameSocket";
 import useGameApi    from "./hooks/useGameApi";
-import { generateShoe, parseCard, SUIT_SYMBOLS, RED_SUITS } from "./utils/deck";
+import { generateShoe, generateSplitTestShoe,  parseCard, SUIT_SYMBOLS, RED_SUITS } from "./utils/deck";
 import Card          from "./components/Card";
 import CountRing     from "./components/CountRing";
 import Chip          from "./components/Chip";
@@ -88,19 +88,28 @@ export default function App() {
   function fireNextPostDeal() {
     if (modalActiveRef.current) return;
     if (firingPostDealRef.current) return;
+
     const next = postDealQueueRef.current.shift();
     if (!next) {
       dispatch({ type:"UNLOCK_ACTIONS" });
       return;
     }
+
     firingPostDealRef.current = true;
+    modalActiveRef.current = true; // always block until event explicitly releases
     console.log(`[postDeal] firing ${next.event} at`, Date.now());
     dispatch({ type:"UNLOCK_ACTIONS" });
-    const isModal = ["playerInsuranceChoice", "playerSplitChoice"].includes(next.event);
-    if (isModal) modalActiveRef.current = true;
     processEvent(next);
-    firingPostDealRef.current = false;
-    if (!isModal) fireNextPostDeal();
+    // NOTE: firingPostDealRef and modalActiveRef are released by the event handler itself
+    // For modals: handleInsurance/handleSplit release them
+    // For animations: dealerBlackjack/blackjackPush/playerBlackJack release in setTimeout
+    // For instant events: released immediately below
+    const selfReleasing = ["playerInsuranceChoice", "playerSplitChoice", "dealerBlackjack", "blackjackPush", "playerBlackJack"];
+    if (!selfReleasing.includes(next.event)) {
+      firingPostDealRef.current = false;
+      modalActiveRef.current = false;
+      fireNextPostDeal();
+    }
   }
 
   function triggerSweep(outcomePayload) {
@@ -260,8 +269,16 @@ export default function App() {
       case "playerBlackJack": {
         const payout = Math.floor(s.wager * 1.5);
         const payload = { outcome:"win", text:"BLACKJACK!", newBalance: s.balance + payout };
-        toast(`Blackjack! +$${payout}`, "win");
-        triggerSweep(payload);
+        dispatch({ type:"REVEAL_DEALER_HOLE" });
+        setHoleRevealed(true);
+        const t = setTimeout(() => {
+          toast(`Blackjack! +$${payout}`, "win");
+          triggerSweep(payload);
+          firingPostDealRef.current = false;
+          modalActiveRef.current = false;
+          fireNextPostDeal();
+        }, 1400);
+        timersRef.current.push(t);
         break;
       }
 
@@ -272,6 +289,9 @@ export default function App() {
         const t = setTimeout(() => {
           toast("Dealer has Blackjack!", "bust");
           triggerSweep(payload);
+          firingPostDealRef.current = false;
+          modalActiveRef.current = false;
+          fireNextPostDeal();
         }, 1400);
         timersRef.current.push(t);
         break;
@@ -284,6 +304,9 @@ export default function App() {
         const t = setTimeout(() => {
           toast("Both Blackjack — Push!", "push");
           triggerSweep(payload);
+          firingPostDealRef.current = false;
+          modalActiveRef.current = false;
+          fireNextPostDeal();
         }, 1400);
         timersRef.current.push(t);
         break;
@@ -295,17 +318,7 @@ export default function App() {
       }
 
       case "updateCount": {
-        if (splitInitCountsRef.current !== null) {
-          splitInitCountsRef.current.push(msg.count);
-          // Only need first count to init — second card is on the other hand
-          if (splitInitCountsRef.current.length >= 1) {
-            const counts = [...splitInitCountsRef.current];
-            splitInitCountsRef.current = null;
-            // Build second hand count from playerHand[1] value
-            const hand2Count = s.playerHand[1]?.value ?? 0;
-            dispatch({ type:"INIT_SPLIT", payload:{ counts: [counts[0], hand2Count] }});
-          }
-        } else if (s.splitMode) {
+        if (s.splitMode) {
           dispatch({ type:"UPDATE_SPLIT_HAND_COUNT", payload:{ handIndex: s.currentSplitHand, count: msg.count }});
         } else {
           dispatch({ type:"UPDATE_PLAYER_COUNT", payload: msg.count });
@@ -313,9 +326,16 @@ export default function App() {
         break;
       }
 
-      case "secondSplitCounter":
-        dispatch({ type:"INIT_SPLIT", payload:{ counts:[s.playerCount, msg.count] }});
+      case "firstSplitCounter":
+        splitInitCountsRef.current = [msg.count];
         break;
+
+      case "secondSplitCounter": {
+        const c1 = splitInitCountsRef.current?.[0] ?? msg.count;
+        splitInitCountsRef.current = null;
+        dispatch({ type:"INIT_SPLIT", payload:{ counts:[c1, msg.count] }});
+        break;
+      }
 
       case "newSplitCounter": {
         const ex = s.splitHands.map(h => h.count);
@@ -324,7 +344,8 @@ export default function App() {
       }
 
       case "splitHit":
-        dispatch({ type:"SPLIT_HIT_HAND", payload:{ handIndex: s.currentSplitHand, count: msg.currentHandCount }});
+        dispatch({ type:"SPLIT_HIT_HAND", payload:{ handIndex: msg.currentHand, count: msg.currentHandCount }});
+        dispatch({ type:"UNLOCK_ACTIONS" });
         break;
 
       case "playerSplitBust":
@@ -415,7 +436,7 @@ export default function App() {
         setReshuffling(false);
         addToast("Reshuffling…", "");
       }
-      const freshShoe = generateShoe(6);
+      const freshShoe = generateSplitTestShoe('10'); // TEST: force 10+10 split — revert to generateShoe(6) for prod
       parsedShoeRef.current   = freshShoe.map(parseCard);
       shoePositionRef.current = 0;
       shoeInitializedRef.current = true;
@@ -524,7 +545,7 @@ export default function App() {
   }
   async function handleInsurance(yes) {
     console.log("[insurance] handleInsurance called", yes);
-    modalActiveRef.current   = false;
+    modalActiveRef.current    = false;
     firingPostDealRef.current = false;
     dispatch({ type:"HIDE_INSURANCE" });
     setTimeout(() => fireNextPostDeal(), 0);
@@ -535,8 +556,7 @@ export default function App() {
     firingPostDealRef.current = false;
     dispatch({ type:"HIDE_SPLIT_PROMPT" });
     if (yes) {
-      splitInitCountsRef.current = null;
-      dispatch({ type:"INIT_SPLIT", payload:{ counts:[0, 0] } });
+      splitInitCountsRef.current = []; // arm collector for firstSplitCounter
       setTimeout(() => fireNextPostDeal(), 0);
       await api.sendSplit(true);
     } else {
@@ -596,7 +616,7 @@ export default function App() {
 
             {!connecting && !landed && (
               <>
-                <p className="conn-tagline">No Real Money. Just Casino Blackjack Vibes.</p>
+                <p className="conn-tagline">No Real Money. Just Casino Blackjack Vibes</p>
                 <p className="conn-tagline">Created By: Rene Hernandez</p>
                 <button className="btn btn--play-now" onClick={() => {
                   setConnecting(true);
@@ -679,7 +699,7 @@ export default function App() {
       )}
 
       <Modal open={showInsurance} suit="♠" title="Insurance?"
-        body="Dealer is showing an Ace or a Ten. Take insurance for half your wager?"
+        body="Dealer is showing an Ace. Take insurance for half your wager?"
         yesLabel="Take Insurance" noLabel="Decline"
         onYes={() => handleInsurance(true)} onNo={() => handleInsurance(false)} />
 

@@ -72,7 +72,12 @@ class Player {
 
 	   void replace(size_t index, int N) { cards.at(index) = N; }
 
-	   void ClearHand() { cards.clear(); }   
+	   void ClearHand() { 
+			cards.clear(); 
+			suits.clear();
+			splitHands.clear();
+			doesHandContainAce.clear();
+		}   
 
 	   int& cardAt(size_t index) {
 			return cards.at(index);

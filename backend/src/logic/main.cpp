@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
 	
     drogon::app()
         .addListener("127.0.0.1", 8081);
+        //.addListener("0.0.0.0", 8080);
     //Load config file
     drogon::app().registerHandler("/api/shuffle",
         [&card_deck, &game, &dealer](const drogon::HttpRequestPtr &req,

@@ -404,9 +404,9 @@ html, body, #root {
   .table-rail { padding:10px; border-radius:140px 140px 50px 50px; }
   .table-surface { border-radius:132px 132px 42px 42px; }
   .card { width:52px; height:76px; }
-  .card__rank    { font-size:0.72rem; }
-  .card__suit-sm { font-size:0.48rem; }
-  .card__center  { font-size:1.0rem; }
+  .card__rank    { font-size:0.65rem; }
+  .card__suit-sm { font-size:0.4rem; }
+  .card__center  { font-size:0.85rem; }
   .felt-rules { font-size:0.42rem; gap:6px; }
   .chip { width:46px; height:46px; }
   .btn--hit, .btn--stand { padding:11px 24px; }

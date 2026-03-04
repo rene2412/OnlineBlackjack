@@ -213,6 +213,7 @@ void GameController::NextGame(const drogon::HttpRequestPtr &req, std::function<v
         //reverse(deck.GetDeck().begin(), deck.GetDeck().end());
 		//reverse(deck.GetSuitsDeck().begin(), deck.GetSuitsDeck().end());
 	    game.Deal(game.GetPlayers(), dealer, deck.GetDeck(), deck.GetSuitsDeck());
+        game.SetCurrentHand(0);
         player->ShowDeck();
         dealer.ShowDeck();
 
@@ -236,13 +237,13 @@ void GameController::NextGame(const drogon::HttpRequestPtr &req, std::function<v
 
 void GameController::EndSession(const drogon::HttpRequestPtr &req,
     std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
-
     auto &game   = Game::GetGameInstance();
     auto &dealer = game.GetDealerInstance();
     auto &deck   = game.GetDeckInstance();
     std::cout << "Clearing data for new session\n";
     dealer.ClearHand();
     dealer.SetAce(false);
+    game.SetCurrentHand(0);
     for (auto& player : game.GetPlayers()) {
             player->SetBust(false);
             player->ClearHand();

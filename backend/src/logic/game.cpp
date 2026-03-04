@@ -259,7 +259,7 @@ void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::
 	std::cout << "Current Hand: " << currentHand << std::endl;
 	auto &playerSplitHands = players[index]->GetSplitHands();
 	auto &hand = playerSplitHands[currentHand];
-	for (int x : hand) { std::cout << "Hand: " << currentHand << "| Current Card: " << x << std::endl; }  
+	for (int x : hand) { std::cout << "HAND: " << currentHand << "| Current Card: " << x << std::endl; }  
 		
 	if (deck.empty()) {
 			std::cout << "Deck Is Empty: Time to reshuffle\n";
@@ -294,8 +294,8 @@ void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::
 		}
 		players[index]->insertIntoHand(nextCard, currentHand);
 		currentCount = players[index]->GetMultiHandCount(hand);
-		std::cout << "Current Count: " << currentCount << std::endl;
-		std::cout << "Sending API to hit at front\n";
+		//std::cout << "Current Count: " << currentCount << std::endl;
+		//std::cout << "Sending API to hit at front\n";
 		std::string splitHit = "{\"event\": \"splitHit\", \"currentHandCount\": " + std::to_string(currentCount) + ", \"currentHand\": " + std::to_string(currentHand) + ",\"firstCard\": " + std::to_string(firstCard) + "}";
 		GameWebSocketController::EventAPI(splitHit);
 		for (int x : hand) { std::cout << "Hand: " << currentHand << "| Current Card: " << x << std::endl; }  
@@ -307,6 +307,9 @@ void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::
 			players[index]->SetBalance(newBalance);
 			std::string playerBust = "{\"event\": \"playerSplitBust\", \"hand\": " + std::to_string(currentHand) + ", \"updateBalance\": " + std::to_string(newBalance) + "}";
 			GameWebSocketController::EventAPI(playerBust);
+			int newHand = ++currentHand;
+			SetCurrentHand(newHand);
+			std::cout << "New Hand: " << newHand << std::endl;
 			return;
 		}
 	}
@@ -340,10 +343,15 @@ void Game::SplitPlay(std::vector<std::shared_ptr<Player>> &players, Dealer &deal
 					int handCount = player->GetMultiHandCount(hand);
 					std::cout << "Current Hand Count: " << handCount << std::endl;
 				    bool hasHandBusted = player->didSplitHandBust(hand);
+					std::cout << "Is current hand busted? "<< currentHand << ", " << hasHandBusted << std::endl;
 					bool wonOnBlackjack = false;   
-					if (hasHandBusted) continue;
+					if (hasHandBusted) {  
+						std::cout << "Skipping Busted Hand: " << currentHand << std::endl;
+						currentHand ++;
+						continue;
+					}
 					//player won  on blackjack
-					if (hasHandBusted == false and (handCount == 21 and dealer.count() != 21)) {
+					if (hasHandBusted == false and (handCount == 21 and dealer.count() != 21 and hand.size() == 2)) {
 						std::cout << "Player Split Won Blackjack\n";
 						wonOnBlackjack = true;
 						int payout = player->GetWager() * 1.5;
@@ -359,7 +367,7 @@ void Game::SplitPlay(std::vector<std::shared_ptr<Player>> &players, Dealer &deal
 							GameWebSocketController::EventAPI(splitPush);
 					}
 					//player Hand beats dealers
-					if (wonOnBlackjack = false and (hasHandBusted == false and handCount > dealer.count() and dealer.count () <= 21) or (wonOnBlackjack == false and dealer.count() > 21 and hasHandBusted == false)) {
+					if ((wonOnBlackjack == false and handCount > dealer.count() and dealer.count() <= 21) or (wonOnBlackjack == false and dealer.count() > 21)) {
 							std::cout << "Player Split Win\n"; 
 							int payout = player->GetWager();
 							int newBalance = player->GetBalance() + payout;
@@ -368,7 +376,7 @@ void Game::SplitPlay(std::vector<std::shared_ptr<Player>> &players, Dealer &deal
 							GameWebSocketController::EventAPI(splitPlayerWin);
 					}
 					//dealer beats player hand
-					if (hasHandBusted == false and  (handCount < dealer.count() and dealer.count() < 21)) {
+					if (hasHandBusted == false and  (handCount < dealer.count() and dealer.count() <= 21)) {
 							std::cout << "Dealer Split Win\n"; 
 							int payLoss = player->GetWager();
 							int newBalance = player->GetBalance() - payLoss;
