@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useCallback } from "react";
 
-//const WS_URL = `ws://${window.location.host}/ws/game`;
-const WS_URL = import.meta.env.VITE_WS_URL
-  ?? `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/game`;
+const WS_URL = `ws://${window.location.host}/ws/game`;
+//const WS_URL = import.meta.env.VITE_WS_URL
+  //?? `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/game`;
 const RECONNECT_BASE_MS  = 1500;
 const RECONNECT_MAX_MS   = 15000;
 

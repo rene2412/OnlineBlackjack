@@ -24,6 +24,7 @@ export const initialState = {
   resultText:       null,
   showInsurance:    false,
   showSplitPrompt:  false,
+  showResplitPrompt: false,
   actionsLocked:    false,
   dealt:            false,
   pendingBalance:   null,
@@ -81,6 +82,7 @@ export function gameReducer(state, action) {
         pendingBalance:   null,
         showInsurance:    false,
         showSplitPrompt:  false,
+        showResplitPrompt: false,
         shoeIndex:        0,  // reset per round — tracks cards used THIS round only
       };
 
@@ -130,6 +132,24 @@ export function gameReducer(state, action) {
         shoeIndex:  state.shoeIndex + 1,
         actionsLocked: false,
       };
+    }
+
+    case "HIT_PLAYER_FROM_SHOE_HIDDEN": {
+      const card = state.shoe[state.shoeIndex];
+      if (!card) return state;
+      return {
+        ...state,
+        playerHand: [...state.playerHand, { ...card, hidden: true }],
+        shoeIndex:  state.shoeIndex + 1,
+        actionsLocked: true,
+      };
+    }
+
+    case "REVEAL_DOUBLE_DOWN_CARD": {
+      const hand = state.playerHand.map((c, i) =>
+        i === state.playerHand.length - 1 ? { ...c, hidden: false } : c
+      );
+      return { ...state, playerHand: hand, playerCount: action.payload };
     }
 
     // Reveal dealer hole card
@@ -255,6 +275,38 @@ export function gameReducer(state, action) {
       return { ...state, splitHands: hands, shoeIndex: state.shoeIndex + 1, actionsLocked: false };
     }
 
+    case "SPLIT_REMOVE_LAST_CARD": {
+      const hands = state.splitHands.map((h, i) =>
+        i === action.payload
+          ? { ...h, cards: h.cards.slice(0, -1), shoeIndex: state.shoeIndex - 1 }
+          : h
+      );
+      return { ...state, splitHands: hands, shoeIndex: state.shoeIndex - 1 };
+    }
+
+    case "SPLIT_HIT_HAND_HIDDEN": {
+      const shoeCard = state.shoe[state.shoeIndex];
+      const newCard = shoeCard
+        ? { ...shoeCard, hidden: true }
+        : { rank:"?", suit:"S", value:action.payload.count, color:"black", symbol:"♠", hidden:true };
+      const hands = state.splitHands.map((h, i) =>
+        i === action.payload.handIndex
+          ? { ...h, cards: [...h.cards, newCard] }
+          : h
+      );
+      return { ...state, splitHands: hands, shoeIndex: state.shoeIndex + 1 };
+    }
+
+    case "REVEAL_SPLIT_DOUBLE_DOWN_CARD": {
+      const hands = state.splitHands.map((h, i) =>
+        i === action.payload.handIndex
+          ? { ...h, count: action.payload.count, cards: h.cards.map((c, ci) =>
+              ci === h.cards.length - 1 ? { ...c, hidden: false } : c) }
+          : h
+      );
+      return { ...state, splitHands: hands };
+    }
+
     case "SPLIT_BUST_HAND": {
       const hands = state.splitHands.map((h, i) =>
         i === action.payload ? { ...h, busted: true, resolved: true } : h
@@ -296,6 +348,38 @@ export function gameReducer(state, action) {
       return { ...state, showSplitPrompt: true };
     case "HIDE_SPLIT_PROMPT":
       return { ...state, showSplitPrompt: false };
+    case "SHOW_RESPLIT_PROMPT":
+      return { ...state, showResplitPrompt: true };
+    case "HIDE_RESPLIT_PROMPT":
+      return { ...state, showResplitPrompt: false };
+    case "UPDATE_LAST_SPLIT_HAND_COUNT": {
+      const hands = state.splitHands.map((h, i) =>
+        i === state.splitHands.length - 1 ? { ...h, count: action.payload } : h
+      );
+      return { ...state, splitHands: hands };
+    }
+
+    case "ADD_SPLIT_HAND": {
+      // The matching card is the last card on the current active hand — move it to new hand
+      const activeHand = state.splitHands[state.currentSplitHand];
+      if (!activeHand || activeHand.cards.length === 0) return state;
+      const movedCard = activeHand.cards[activeHand.cards.length - 1];
+      const updatedHands = state.splitHands.map((h, i) =>
+        i === state.currentSplitHand
+          ? { ...h, cards: h.cards.slice(0, -1), count: action.payload.count }
+          : h
+      );
+      const newHand = {
+        cards: [{ ...movedCard, hidden: false }],
+        count: action.payload.count,
+        busted: false, resolved: false, won: null
+      };
+      return {
+        ...state,
+        splitHands: [...updatedHands, newHand],
+        actionsLocked: false,
+      };
+    }
 
     case "NEXT_ROUND":
       return {

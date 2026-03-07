@@ -2,7 +2,7 @@ import React, { useEffect, useState, useReducer, useCallback, useRef } from "rea
 import { gameReducer, initialState } from "./store/gameStore";
 import useGameSocket from "./hooks/useGameSocket";
 import useGameApi    from "./hooks/useGameApi";
-import { generateShoe, generateSplitTestShoe,  parseCard, SUIT_SYMBOLS, RED_SUITS } from "./utils/deck";
+import { generateShoe, generateSplitTestShoe, generateQuadSplitTestShoe, parseCard, SUIT_SYMBOLS, RED_SUITS } from "./utils/deck";
 import Card          from "./components/Card";
 import CountRing     from "./components/CountRing";
 import Chip          from "./components/Chip";
@@ -36,16 +36,19 @@ export default function App() {
   const [showCounters, setShowCounters] = useState(false);
   const [holeRevealed, setHoleRevealed] = useState(false);
   const [reshuffling, setReshuffling]   = useState(false);
-  const [landed, setLanded]             = useState(false); // false = landing page, true = table
-  const [connecting, setConnecting]     = useState(false); // show spinner after Play Now
+  const [landed, setLanded]             = useState(false);
+  const [connecting, setConnecting]     = useState(false);
   const [splitRevealIndex, setSplitRevealIndex] = useState(-1);
   const [splitBanner, setSplitBanner]           = useState({ text: null, type: null });
   const [splitRevealPending, setSplitRevealPending] = useState(false);
+  const [balanceFloat, setBalanceFloat] = useState(null); // { amount, type, key }
   // Extra delay before sweep — set when dealerHit fires so we wait for last card
   const sweepExtraDelayRef  = useRef(0);
   const pendingOutcomeRef   = useRef(null);
   const dealerAnimDoneRef   = useRef(true);
-  const dealerCardIndexRef  = useRef(0); // tracks which dealer card we're on
+  const dealerCardIndexRef  = useRef(0);
+  const doubleDownPendingRef = useRef(false); // true while waiting to reveal hidden card
+  const resplitPendingRef    = useRef(false); // show resplit modal after next splitHit animates
 
   const [, forceTimerTick] = useState(0);
   useEffect(() => { stateRef.current = state; },       [state]);
@@ -60,22 +63,44 @@ export default function App() {
     const STEP = 2600;
     let bannerKey = 0;
     hands.forEach((hand, idx) => {
+      const hasHidden = hand.cards.some(c => c.hidden);
+      if (hasHidden) {
+        const revealT = setTimeout(() => {
+          dispatch({ type:"REVEAL_SPLIT_DOUBLE_DOWN_CARD", payload:{ handIndex: idx, count: hand.count } });
+        }, idx * STEP + 200);
+        timersRef.current.push(revealT);
+      }
+      const bannerDelay = idx * STEP + (hasHidden ? 800 : 0);
       const t = setTimeout(() => {
         setSplitRevealIndex(idx);
-        let text, type;
-        if (hand.busted)            { text = `HAND ${idx+1} BUST`;  type = "bust"; }
-        else if (hand.won === true)  { text = `HAND ${idx+1} WINS`;  type = "win";  }
-        else if (hand.won === false) { text = `HAND ${idx+1} LOSES`; type = "bust"; }
-        else                         { text = `HAND ${idx+1} PUSH`;  type = "push"; }
+        let text, type, floatAmt;
+        if (hand.busted) {
+          text = `HAND ${idx+1} BUST`;  type = "bust";
+          floatAmt = `-$${stateRef.current.wager}`;
+        } else if (hand.won === true) {
+          text = `HAND ${idx+1} WINS`;  type = "win";
+          floatAmt = `+$${stateRef.current.wager}`;
+        } else if (hand.won === false) {
+          text = `HAND ${idx+1} LOSES`; type = "bust";
+          floatAmt = `-$${stateRef.current.wager}`;
+        } else {
+          text = `HAND ${idx+1} PUSH`;  type = "push";
+          floatAmt = `±$0`;
+        }
         setSplitBanner({ text, type, key: ++bannerKey });
-      }, idx * STEP);
+        showBalanceFloat(floatAmt, type);
+      }, bannerDelay);
       timersRef.current.push(t);
     });
+    const lastDelay = hands.reduce((max, hand, idx) => {
+      const hasHidden = hand.cards.some(c => c.hidden);
+      return Math.max(max, idx * STEP + (hasHidden ? 800 : 0));
+    }, 0);
     const done = setTimeout(() => {
       setSplitRevealIndex(-1);
       setSplitBanner({ text: null, type: null });
       dispatch({ type:"SPLIT_ROUND_DONE" });
-    }, hands.length * STEP + 1000);
+    }, lastDelay + STEP);
     timersRef.current.push(done);
   }, [splitRevealPending]);
   useEffect(() => {
@@ -123,8 +148,15 @@ export default function App() {
         dispatch({ type: "COMMIT_OUTCOME" });
       }, SWEEP_DURATION + 100);
       timersRef.current.push(t2);
-    }, 600 + extra); // 600ms base + however long dealer cards still need
+    }, 600 + extra);
     timersRef.current.push(t1);
+  }
+
+  const balanceFloatKeyRef = useRef(0);
+  function showBalanceFloat(amount, type) {
+    setBalanceFloat({ amount, type, key: ++balanceFloatKeyRef.current });
+    const t = setTimeout(() => setBalanceFloat(null), 1800);
+    timersRef.current.push(t);
   }
 
   // ═══════════════════════════════════════════
@@ -150,6 +182,53 @@ export default function App() {
         dispatch({ type:"UNLOCK_ACTIONS" });
         break;
 
+      case "doubleDown": {
+        dispatch({ type:"HIT_PLAYER_FROM_SHOE_HIDDEN" });
+        dispatch({ type:"LOCK_ACTIONS" });
+        // doubleDownPendingRef already armed on button click
+        const standDelay = setTimeout(() => {
+          api.sendDecision("stand").catch(() => {});
+        }, 900);
+        timersRef.current.push(standDelay);
+        let dealerStarted = false;
+        const waitForDealer = setInterval(() => {
+          if (!dealerAnimDoneRef.current) dealerStarted = true;
+          if (dealerStarted && dealerAnimDoneRef.current) {
+            clearInterval(waitForDealer);
+            const revealDelay = setTimeout(() => {
+              dispatch({ type:"REVEAL_DOUBLE_DOWN_CARD", payload: msg.count });
+              doubleDownPendingRef.current = false;
+              if (stateRef.current.splitMode) {
+                // In split mode — advance to next hand after reveal
+                setTimeout(() => {
+                  dispatch({ type:"ADVANCE_SPLIT_HAND", payload: stateRef.current.currentSplitHand + 1 });
+                  dispatch({ type:"UNLOCK_ACTIONS" });
+                }, 600);
+              } else if (pendingOutcomeRef.current) {
+                const { payload, toastMsg, toastType } = pendingOutcomeRef.current;
+                pendingOutcomeRef.current = null;
+                setTimeout(() => {
+                  addToastRef.current(toastMsg, toastType);
+                  triggerSweep(payload);
+                }, 1400);
+              }
+            }, 600);
+            timersRef.current.push(revealDelay);
+          }
+        }, 100);
+        timersRef.current.push(waitForDealer);
+        break;
+      }
+
+      case "splitDoubleDown": {
+        // splitHit already added a visible card — remove it, replace with hidden
+        dispatch({ type:"SPLIT_REMOVE_LAST_CARD", payload: msg.hand });
+        dispatch({ type:"SPLIT_HIT_HAND_HIDDEN", payload:{ handIndex: msg.hand, count: msg.count } });
+        dispatch({ type:"ADVANCE_SPLIT_HAND", payload: msg.hand + 1 });
+        dispatch({ type:"UNLOCK_ACTIONS" });
+        break;
+      }
+
       case "dealerHit": {
         // values[] from backend = cumulative counts skipping card[0]:
         // e.g. dealer has 6(hidden)+10(visible), draws 4:
@@ -162,11 +241,10 @@ export default function App() {
         dealerCardIndexRef.current = 0;
 
         if (counts.length === 0) {
-          // No cards — just reveal hole
           dispatch({ type:"REVEAL_DEALER_HOLE" });
           const td = setTimeout(() => {
             dealerAnimDoneRef.current = true;
-            if (pendingOutcomeRef.current) {
+            if (pendingOutcomeRef.current && !doubleDownPendingRef.current) {
               const { payload, toastMsg, toastType } = pendingOutcomeRef.current;
               pendingOutcomeRef.current = null;
               addToastRef.current(toastMsg, toastType);
@@ -199,7 +277,7 @@ export default function App() {
 
         const td = setTimeout(() => {
           dealerAnimDoneRef.current = true;
-          if (pendingOutcomeRef.current) {
+          if (pendingOutcomeRef.current && !doubleDownPendingRef.current) {
             const { payload, toastMsg, toastType } = pendingOutcomeRef.current;
             pendingOutcomeRef.current = null;
             addToastRef.current(toastMsg, toastType);
@@ -213,15 +291,23 @@ export default function App() {
       }
 
       case "playerBust": {
-        dispatch({ type:"HIT_PLAYER_FROM_SHOE" });
-        const payload = { outcome:"bust", text:"BUST", newBalance: s.balance - s.wager };
-        toast(`Bust!`, "bust");
-        triggerSweep(payload);
+        if (!doubleDownPendingRef.current) {
+          // Regular bust — add the card that caused bust
+          dispatch({ type:"HIT_PLAYER_FROM_SHOE" });
+        }
+        const bustPayload = { outcome:"bust", text:"BUST", newBalance: msg.newBalance ?? s.balance - s.wager };
+        if (doubleDownPendingRef.current) {
+          pendingOutcomeRef.current = { payload: bustPayload, toastMsg:"Bust!", toastType:"bust" };
+        } else {
+          toast("Bust!", "bust");
+          triggerSweep(bustPayload);
+        }
         break;
       }
       case "dealerBust": {
-        const payload = { outcome:"win", text:"DEALER BUSTS!", newBalance: s.balance + s.wager };
-        if (!dealerAnimDoneRef.current) {
+        if (pendingOutcomeRef.current) break;
+        const payload = { outcome:"win", text:"DEALER BUSTS!", newBalance: msg.newBalance ?? s.balance + s.wager };
+        if (!dealerAnimDoneRef.current || doubleDownPendingRef.current) {
           pendingOutcomeRef.current = { payload, toastMsg:"Dealer busted — you win!", toastType:"win" };
         } else {
           toast("Dealer busted — you win!", "win");
@@ -230,31 +316,37 @@ export default function App() {
         break;
       }
       case "playerWin": {
-        const payload = { outcome:"win", text:"YOU WIN!", newBalance: s.balance + s.wager };
-        if (!dealerAnimDoneRef.current) {
+        if (pendingOutcomeRef.current) break;
+        const payload = { outcome:"win", text:"YOU WIN!", newBalance: msg.newBalance ?? s.balance + s.wager };
+        if (!dealerAnimDoneRef.current || doubleDownPendingRef.current) {
           pendingOutcomeRef.current = { payload, toastMsg:`+$${s.wager}`, toastType:"win" };
         } else {
           toast(`+$${s.wager}`, "win");
+          showBalanceFloat(`+$${s.wager}`, "win");
           triggerSweep(payload);
         }
         break;
       }
       case "dealerWin": {
-        const payload = { outcome:"bust", text:"DEALER WINS", newBalance: s.balance - s.wager };
-        if (!dealerAnimDoneRef.current) {
+        if (pendingOutcomeRef.current) break;
+        const payload = { outcome:"bust", text:"DEALER WINS", newBalance: msg.newBalance ?? s.balance - s.wager };
+        if (!dealerAnimDoneRef.current || doubleDownPendingRef.current) {
           pendingOutcomeRef.current = { payload, toastMsg:`-$${s.wager}`, toastType:"bust" };
         } else {
           toast(`-$${s.wager}`, "bust");
+          showBalanceFloat(`-$${s.wager}`, "bust");
           triggerSweep(payload);
         }
         break;
       }
       case "push": {
-        const payload = { outcome:"push", text:"PUSH" };
-        if (!dealerAnimDoneRef.current) {
+        if (pendingOutcomeRef.current) break;
+        const payload = { outcome:"push", text:"PUSH", newBalance: msg.newBalance ?? s.balance };
+        if (!dealerAnimDoneRef.current || doubleDownPendingRef.current) {
           pendingOutcomeRef.current = { payload, toastMsg:"Push — bet returned", toastType:"push" };
         } else {
           toast("Push — bet returned", "push");
+          showBalanceFloat(`±$0`, "push");
           triggerSweep(payload);
         }
         break;
@@ -262,15 +354,53 @@ export default function App() {
 
       case "playerInsuranceChoice": dispatch({ type:"SHOW_INSURANCE"   }); break;
       case "playerSplitChoice":
-        splitInitCountsRef.current = []; // arm collector now — updateCount arrives fast after yes
+        splitInitCountsRef.current = [];
         dispatch({ type:"SHOW_SPLIT_PROMPT" });
+        break;
+      case "newPlayerSplitChoice":
+      case "callReSplitController":
+        // splitHit already landed the card — show modal after brief pause
+        setTimeout(() => {
+          modalActiveRef.current = true;
+          firingPostDealRef.current = false;
+          dispatch({ type:"SHOW_RESPLIT_PROMPT" });
+        }, 800);
+        break;
+
+      case "insufficientFunds":
+        toast("Insufficient funds to split!", "bust");
+        dispatch({ type:"UNLOCK_ACTIONS" });
+        break;
+
+      case "newSplitCounter":
+        if (msg.count !== undefined) {
+          // Result after resplit yes — add new hand with card from shoe
+          dispatch({ type:"ADD_SPLIT_HAND", payload:{ count: msg.count } });
+          if (msg.updateBalance !== undefined) {
+            dispatch({ type:"UPDATE_BALANCE", payload: msg.updateBalance });
+          }
+        } else {
+          // Trigger — splitHit already landed, show modal after brief pause
+          setTimeout(() => {
+            modalActiveRef.current = true;
+            firingPostDealRef.current = false;
+            dispatch({ type:"SHOW_RESPLIT_PROMPT" });
+          }, 800);
+        }
         break;
 
       case "playerBlackJack": {
         const payout = Math.floor(s.wager * 1.5);
-        const payload = { outcome:"win", text:"BLACKJACK!", newBalance: s.balance + payout };
+        const payload = { outcome:"win", text:"BLACKJACK!", newBalance: msg.newBalance ?? s.balance + payout };
         dispatch({ type:"REVEAL_DEALER_HOLE" });
         setHoleRevealed(true);
+        if (msg.dealerCount) {
+          dispatch({ type:"UPDATE_DEALER_COUNT", payload: msg.dealerCount });
+        } else {
+          const holeVal = s.dealerHand[1]?.value ?? 0;
+          const visVal  = s.dealerHand[0]?.value ?? 0;
+          dispatch({ type:"UPDATE_DEALER_COUNT", payload: holeVal + visVal });
+        }
         const t = setTimeout(() => {
           toast(`Blackjack! +$${payout}`, "win");
           triggerSweep(payload);
@@ -283,9 +413,14 @@ export default function App() {
       }
 
       case "dealerBlackjack": {
-        const payload = { outcome:"bust", text:"DEALER BLACKJACK", newBalance: s.balance - s.wager };
+        const payload = { outcome:"bust", text:"DEALER BLACKJACK", newBalance: msg.newBalance ?? s.balance - s.wager };
         dispatch({ type:"REVEAL_DEALER_HOLE" });
         setHoleRevealed(true);
+        if (msg.dealerCount) dispatch({ type:"UPDATE_DEALER_COUNT", payload: msg.dealerCount });
+        else {
+          const total = (s.dealerHand[0]?.value ?? 0) + (s.dealerHand[1]?.value ?? 0);
+          dispatch({ type:"UPDATE_DEALER_COUNT", payload: total });
+        }
         const t = setTimeout(() => {
           toast("Dealer has Blackjack!", "bust");
           triggerSweep(payload);
@@ -298,9 +433,14 @@ export default function App() {
       }
 
       case "blackjackPush": {
-        const payload = { outcome:"push", text:"PUSH — BOTH BLACKJACK" };
+        const payload = { outcome:"push", text:"PUSH — BOTH BLACKJACK", newBalance: msg.newBalance ?? s.balance };
         dispatch({ type:"REVEAL_DEALER_HOLE" });
         setHoleRevealed(true);
+        if (msg.dealerCount) dispatch({ type:"UPDATE_DEALER_COUNT", payload: msg.dealerCount });
+        else {
+          const total = (s.dealerHand[0]?.value ?? 0) + (s.dealerHand[1]?.value ?? 0);
+          dispatch({ type:"UPDATE_DEALER_COUNT", payload: total });
+        }
         const t = setTimeout(() => {
           toast("Both Blackjack — Push!", "push");
           triggerSweep(payload);
@@ -318,6 +458,7 @@ export default function App() {
       }
 
       case "updateCount": {
+        if (doubleDownPendingRef.current) break; // ignore during double down reveal
         if (s.splitMode) {
           dispatch({ type:"UPDATE_SPLIT_HAND_COUNT", payload:{ handIndex: s.currentSplitHand, count: msg.count }});
         } else {
@@ -337,15 +478,22 @@ export default function App() {
         break;
       }
 
-      case "newSplitCounter": {
-        const ex = s.splitHands.map(h => h.count);
-        dispatch({ type:"INIT_SPLIT", payload:{ counts:[...ex, msg.count] }});
-        break;
-      }
-
       case "splitHit":
         dispatch({ type:"SPLIT_HIT_HAND", payload:{ handIndex: msg.currentHand, count: msg.currentHandCount }});
-        dispatch({ type:"UNLOCK_ACTIONS" });
+        if (resplitPendingRef.current) {
+          resplitPendingRef.current = false;
+          setTimeout(() => {
+            modalActiveRef.current = true;
+            firingPostDealRef.current = false;
+            dispatch({ type:"SHOW_RESPLIT_PROMPT" });
+          }, 800);
+        } else if (!doubleDownPendingRef.current) {
+          dispatch({ type:"UNLOCK_ACTIONS" });
+        }
+        break;
+
+      case "updateCounterOnResplitStand":
+        dispatch({ type:"UPDATE_SPLIT_HAND_COUNT", payload:{ handIndex: msg.currentResplitHand, count: msg.currentResplitHandCount }});
         break;
 
       case "playerSplitBust":
@@ -371,13 +519,16 @@ export default function App() {
         break;
 
       case "splitRoundDone": {
-        // Wait for dealer to finish drawing before revealing results
         const waitForDealer = () => {
           if (!dealerAnimDoneRef.current) {
             const t = setTimeout(waitForDealer, 200);
             timersRef.current.push(t);
           } else {
-            setSplitRevealPending(true);
+            // 200ms cushion after dealer finishes, then straight to results
+            const cushion = setTimeout(() => {
+              setSplitRevealPending(true);
+            }, 200);
+            timersRef.current.push(cushion);
           }
         };
         const t = setTimeout(waitForDealer, 400);
@@ -436,7 +587,7 @@ export default function App() {
         setReshuffling(false);
         addToast("Reshuffling…", "");
       }
-      const freshShoe = generateSplitTestShoe('10'); // TEST: force 10+10 split — revert to generateShoe(6) for prod
+      const freshShoe = generateShoe(6);
       parsedShoeRef.current   = freshShoe.map(parseCard);
       shoePositionRef.current = 0;
       shoeInitializedRef.current = true;
@@ -534,14 +685,27 @@ export default function App() {
     try { await api.sendDecision("stand"); } catch { dispatch({ type:"UNLOCK_ACTIONS" }); }
   }
   async function handleDouble() {
+    console.log("[double] clicked, wager:", state.wager, "balance:", state.balance, "locked:", state.actionsLocked);
+    const doubled = state.wager * 2;
+    if (doubled > state.balance) { addToast("Can't afford double!", "bust"); return; }
+    dispatch({ type:"LOCK_ACTIONS" });
+    doubleDownPendingRef.current = true; // arm immediately so any incoming outcomes queue up
+    try {
+      await api.sendDouble();
+    } catch {
+      doubleDownPendingRef.current = false;
+      dispatch({ type:"UNLOCK_ACTIONS" });
+    }
+  }
+  async function handleSplitDouble() {
     const doubled = state.wager * 2;
     if (doubled > state.balance) { addToast("Can't afford double!", "bust"); return; }
     dispatch({ type:"LOCK_ACTIONS" });
     try {
-      await api.sendWager(doubled);
-      dispatch({ type:"CONFIRM_WAGER" });
-      await api.sendDecision("stand");
-    } catch { dispatch({ type:"UNLOCK_ACTIONS" }); }
+      await api.sendSplitDouble(state.currentSplitHand);
+    } catch {
+      dispatch({ type:"UNLOCK_ACTIONS" });
+    }
   }
   async function handleInsurance(yes) {
     console.log("[insurance] handleInsurance called", yes);
@@ -564,6 +728,13 @@ export default function App() {
       setTimeout(() => fireNextPostDeal(), 0);
     }
   }
+  async function handleReSplit(yes) {
+    modalActiveRef.current    = false;
+    firingPostDealRef.current = false;
+    dispatch({ type:"HIDE_RESPLIT_PROMPT" });
+    dispatch({ type:"UNLOCK_ACTIONS" });
+    await api.sendReSplit(yes);
+  }
   async function handleSplitDecision(action) {
     console.log("[split] handleSplitDecision called", action, "locked:", state.actionsLocked, "splitMode:", state.splitMode, "hand:", state.currentSplitHand);
     dispatch({ type:"LOCK_ACTIONS" });
@@ -577,7 +748,7 @@ export default function App() {
     phase, balance, wager, stagedWager,
     playerHand, dealerHand, playerCount, dealerCount,
     splitMode, splitHands, currentSplitHand,
-    outcome, resultText, showInsurance, showSplitPrompt,
+    outcome, resultText, showInsurance, showSplitPrompt, showResplitPrompt,
     actionsLocked, connected,
     sessionWins, sessionLosses, sessionPushes, sessionStart, sessionEnded, sessionEndedAt, startingBalance,
   } = state;
@@ -616,8 +787,7 @@ export default function App() {
 
             {!connecting && !landed && (
               <>
-                <p className="conn-tagline">No Real Money. Just Casino Blackjack Vibes</p>
-                <p className="conn-tagline">Created By: Rene Hernandez</p>
+                <p className="conn-tagline">Casino-grade. No house advantage.</p>
                 <button className="btn btn--play-now" onClick={() => {
                   setConnecting(true);
                   setTimeout(() => setLanded(true), 2200);
@@ -707,6 +877,11 @@ export default function App() {
         body="You've been dealt a matching pair. Split into two hands?"
         yesLabel="Split" noLabel="Stay"
         onYes={() => handleSplit(true)} onNo={() => handleSplit(false)} />
+
+      <Modal open={showResplitPrompt} suit="♣" title="Split Again?"
+        body="You've received another matching card. Split into another hand?"
+        yesLabel="Split Again" noLabel="Stay"
+        onYes={() => handleReSplit(true)} onNo={() => handleReSplit(false)} />
 
       <div className="top-clock">{clockStr}</div>
 
@@ -811,7 +986,8 @@ export default function App() {
                             {hand.cards.map((c, ci) => (
                               <Card key={ci} rank={c.rank} suit={c.suit}
                                 color={c.color} symbol={c.symbol}
-                                dealing delay={ci * 100} />
+                                dealing={ci === hand.cards.length - 1}
+                                delay={ci * 100} hidden={c.hidden} />
                             ))}
                           </div>
                         </div>
@@ -840,7 +1016,17 @@ export default function App() {
           <div className="hud-stats">
             <div className="hud-stat">
               <span className="hud-label">Balance</span>
-              <span className="hud-val">${balance.toLocaleString()}</span>
+              <span className="hud-val" style={{position:"relative"}}>
+                ${balance.toLocaleString()}
+                {balanceFloat && (
+                  <span
+                    key={balanceFloat.key}
+                    className={`balance-float balance-float--${balanceFloat.type}`}
+                  >
+                    {balanceFloat.amount}
+                  </span>
+                )}
+              </span>
             </div>
 
             <div className="hud-stat hud-stat--center">
@@ -923,7 +1109,8 @@ export default function App() {
               <div className="action-row">
                 <button className="btn btn--hit"    onClick={handleHit}    disabled={actionsLocked}>HIT</button>
                 <button className="btn btn--stand"  onClick={handleStand}  disabled={actionsLocked}>STAND</button>
-                <button className="btn btn--double" onClick={handleDouble} disabled={actionsLocked || wager * 2 > balance}>DOUBLE</button>
+                { console.log("[render] playerHand.length:", playerHand.length, "isPlaying:", isPlaying, "splitMode:", splitMode) }
+                {playerHand.length === 2 && <button className="btn btn--double" onClick={handleDouble} disabled={actionsLocked}>DOUBLE DOWN</button>}
               </div>
             )}
 
@@ -933,6 +1120,8 @@ export default function App() {
                 <div className="action-row">
                   <button className="btn btn--hit"   onClick={() => handleSplitDecision("hit")}   disabled={actionsLocked}>HIT HAND</button>
                   <button className="btn btn--stand" onClick={() => handleSplitDecision("stand")} disabled={actionsLocked}>STAND HAND</button>
+                  {splitHands[currentSplitHand]?.cards.length === 1 &&
+                    <button className="btn btn--double" onClick={handleSplitDouble} disabled={actionsLocked}>DOUBLE DOWN</button>}
                 </div>
               </div>
             )}
@@ -946,6 +1135,8 @@ export default function App() {
                   postDealFiredRef.current = false;
                   modalActiveRef.current   = false;
                   firingPostDealRef.current = false;
+                  doubleDownPendingRef.current = false;
+                  resplitPendingRef.current = false;
                   splitInitCountsRef.current = null;
                   setSplitRevealIndex(-1);
                   setSplitBanner({ text: null, type: null });

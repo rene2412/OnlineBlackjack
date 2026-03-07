@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
-//const API_BASE="";
 
 async function post(endpoint, body) {
   console.log(`[api] POST ${endpoint}`, body);
@@ -64,5 +63,17 @@ export default function useGameApi() {
     return post("/api/end-session", {});
   }, []);
 
-  return { sendWager, sendShuffle, sendDecision, sendInsurance, sendSplit, sendSplitDecision, sendNextGame, sendEndSession };
+  const sendDouble = useCallback(() => {
+    return post("/api/double-down", {});
+  }, []);
+
+  const sendReSplit = useCallback((accept) => {
+    return post("/api/resplit-decision", { split: accept ? "yes" : "no" });
+  }, []);
+
+  const sendSplitDouble = useCallback((handIndex) => {
+    return post("/api/split-double-down", { handIndex });
+  }, []);
+
+  return { sendWager, sendShuffle, sendDecision, sendInsurance, sendSplit, sendSplitDecision, sendNextGame, sendEndSession, sendDouble, sendReSplit, sendSplitDouble };
 }

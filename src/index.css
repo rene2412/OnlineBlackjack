@@ -287,8 +287,10 @@ html, body, #root {
 .split-hand-cards .card { margin:0; }
 .split-hand-cards .card + .card { margin-top: -68px; }
 /* Active hand glow */
-.split-hand-block--active .split-hand-cards { filter: drop-shadow(0 0 12px rgba(201,168,76,0.4)); }
-.split-hand-block--active .split-hand-title { color:rgba(201,168,76,0.9); }
+.split-hand-block--active .split-hand-cards {
+  filter: drop-shadow(0 0 10px rgba(201,168,76,0.65)) drop-shadow(0 0 24px rgba(201,168,76,0.35));
+}
+.split-hand-block--active .split-hand-title { color: var(--gold-light); letter-spacing: 0.14em; }
 /* Outcome states */
 .split-hand-block--busted .split-hand-cards { opacity:0.45; }
 .split-hand-block--won    .split-hand-cards { filter: drop-shadow(0 0 10px rgba(39,174,96,0.5)); }
@@ -349,18 +351,41 @@ html, body, #root {
    CHIPS
 ══════════════════════════════════════════════ */
 .chip-tray { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-.chip { width:54px; height:54px; border-radius:50%; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; position:relative; transition:transform 0.12s,box-shadow 0.12s; background-image:repeating-conic-gradient(rgba(255,255,255,0.12) 0deg 15deg, transparent 15deg 30deg); }
-.chip::before { content:''; position:absolute; inset:0; border-radius:50%; border:3px solid rgba(255,255,255,0.22); }
-.chip::after  { content:''; position:absolute; inset:5px; border-radius:50%; border:1.5px dashed rgba(255,255,255,0.18); }
-.chip__label  { font-family:'Cinzel',serif; font-size:0.65rem; font-weight:700; color:rgba(255,255,255,0.92); text-shadow:0 1px 3px rgba(0,0,0,0.7); position:relative; z-index:1; }
-.chip--green  { background-color:var(--chip-green);  box-shadow:0 4px 14px rgba(34,136,58,0.5); }
-.chip--red    { background-color:var(--chip-red);    box-shadow:0 4px 14px rgba(192,57,43,0.5); }
-.chip--blue   { background-color:var(--chip-blue);   box-shadow:0 4px 14px rgba(26,82,118,0.5); }
-.chip--black  { background-color:var(--chip-black);  box-shadow:0 4px 14px rgba(0,0,0,0.7); }
-.chip--purple { background-color:var(--chip-purple); box-shadow:0 4px 14px rgba(125,60,152,0.6); }
-.chip:hover  { transform:translateY(-4px) scale(1.06); }
-.chip:active { transform:scale(0.93); }
-.chip:disabled { opacity:0.35; cursor:not-allowed; transform:none; }
+.chip {
+  width:62px; height:62px; border-radius:50%; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  position:relative; background:none; padding:0;
+  transition:transform 0.15s cubic-bezier(.34,1.56,.64,1), filter 0.15s;
+}
+.chip--svg { filter: none; }
+.chip__label {
+  font-family:'Cinzel',serif; font-size:0.68rem; font-weight:900;
+  color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.8);
+  position:relative; z-index:1; letter-spacing:0.04em;
+}
+.chip:hover:not(:disabled) { transform:translateY(-5px) scale(1.06); filter:brightness(1.1); }
+.chip:active:not(:disabled) { transform:scale(0.93); }
+.chip:disabled { opacity:0.3; cursor:not-allowed; transform:none; filter:grayscale(0.5); }
+
+/* ── Balance float ── */
+@keyframes balanceFloat {
+  0%   { opacity:0; transform:translateY(0) translateX(-50%); }
+  15%  { opacity:1; transform:translateY(-6px) translateX(-50%); }
+  70%  { opacity:1; transform:translateY(-18px) translateX(-50%); }
+  100% { opacity:0; transform:translateY(-28px) translateX(-50%); }
+}
+.balance-float {
+  position:absolute; left:50%; top:-4px;
+  font-family:'Cinzel',serif; font-size:0.85rem; font-weight:900;
+  white-space:nowrap; pointer-events:none;
+  animation: balanceFloat 1.8s ease-out forwards;
+  letter-spacing:0.04em;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+}
+.balance-float--win  { color:#4ade80; }
+.balance-float--bust { color:#f87171; }
+.balance-float--push { color:#fbbf24; }
+
 
 /* ══════════════════════════════════════════════
    BUTTONS
@@ -567,22 +592,9 @@ html, body, #root {
 }
 
 /* All In chip */
-.chip--allin {
-  background: radial-gradient(circle at 35% 35%, #c9a84c, #8b6914);
-  border-color: #f0d060;
-  color: #1a0a00;
-  font-size: 0.52rem;
-  letter-spacing: 0.08em;
-  animation: allinPulse 2s ease-in-out infinite;
-}
-.chip--allin .chip__label { font-size: 0.84rem; color: #ffffff; text-shadow: none; letter-spacing: 0.08em; }
-.chip--allin:hover:not(:disabled) { transform: translateY(-4px) scale(1.08); }
-@keyframes allinPulse {
-  0%,100% { box-shadow: 0 3px 10px rgba(0,0,0,0.5), 0 0 0 rgba(201,168,76,0); }
-  50%      { box-shadow: 0 3px 10px rgba(0,0,0,0.5), 0 0 14px rgba(201,168,76,0.5); }
-}
-
+.chip--allin-svg { /* SVG handles all styling */ }
 .chip__allin-top { display:block; font-size:0.42rem; letter-spacing:0.12em; opacity:0.8; line-height:1.2; }
+
 
 /* Split hand result reveal animations */
 .split-hand-cards--win .card {

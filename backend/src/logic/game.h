@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <chrono>
+#include <cstdint>
 #include <drogon/HttpController.h>
 
 class Game {
@@ -31,11 +32,11 @@ class Game {
 	void SetCurrentPlayer(int newPlayer) { index = newPlayer; }
     bool GetSplitState() const { return splitState; }
 	bool GetOnDeal() const { return OnDeal; }
-    
+
 	void SetSplitState(bool newState) { splitState = newState; }
 	void SetOnDeal(bool newDeal) { OnDeal = newDeal; }
 	void SetCurrentHand(int newHand) {currentHand = newHand; }
-
+	
 	static Game& GetGameInstance() {
 		static Game instance;
 		return instance;
@@ -54,11 +55,11 @@ class Game {
 	int DetermineDealerAceHandValue(Dealer &dealer);
 	int DetermineAceMultipleHandsValue(std::vector<std::shared_ptr<Player>> &players, int playerIndex, int handIndex);
 	bool IsSplitValid(std::vector<std::shared_ptr<Player>> &players, int index);
-	bool DoubleDown(std::vector<std::shared_ptr<Player>> &players, int playerIndex);
+	void DoubleDown(std::vector<std::shared_ptr<Player>> &players, int playerIndex);
 	void push_back(const Player &p); 
-	void Split(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, std::deque<char> &suitDeck, int index, std::string action);
-	void HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index);
-	void HandleSplitStand(std::vector<std::shared_ptr<Player>> &players, Game &game, Dealer &dealer, std::deque<int> &deck, int currentHand, int index);
+	void Split(std::vector<std::shared_ptr<Player>> &players, std::deque<int> &deck, int index, std::string action);
+	void HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck, int index);
+	void HandleSplitStand(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck, int currentHand, int index);
 	void Shuffle();
 	void SplitPlay(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, std::deque<int> &deck);
 	void ResetHands(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer);

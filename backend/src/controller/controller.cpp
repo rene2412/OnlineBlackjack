@@ -47,7 +47,7 @@ void GameController::PlayerWager(const drogon::HttpRequestPtr &req,
         auto &game = Game::GetGameInstance();
         auto &dealer = game.GetDealerInstance();
         auto &deck = game.GetDeckInstance();
-        auto player = game.GetPlayers()[0];
+        auto &player = game.GetPlayers()[0];
         try {
             int newWager = stoi(wager);
             player->SetWager(newWager);
@@ -79,7 +79,7 @@ void GameController::Insurance(const drogon::HttpRequestPtr &req,
         auto &game = Game::GetGameInstance();
         auto &dealer = game.GetDealerInstance();
         auto &deck = game.GetDeckInstance();
-        auto player = game.GetPlayers()[0];
+        auto &player = game.GetPlayers()[0];
         if (action == "yes") {
             int insuranceWager = player->GetWager() / 2;
             insuranceWager = insuranceWager + player->GetWager();
@@ -92,6 +92,76 @@ void GameController::Insurance(const drogon::HttpRequestPtr &req,
         callback(resp);
 
     } catch(...) {}
+}
+
+void GameController::DoubleDownController(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback)  {
+        try {
+        auto &game = Game::GetGameInstance();
+        auto &dealer = game.GetDealerInstance();
+        auto &deck = game.GetDeckInstance();
+        auto &player = game.GetPlayers()[0];
+        std::cout << "Double Down TIME\n";
+        game.DoubleDown(game.GetPlayers(), 0);
+        game.PlayerHit(game.GetPlayers(), deck.GetDeck(), 0);
+		player->ShowDeck();
+		int playerCount = player->GetCount();
+        std::string doubleDown = "{\"event\": \"doubleDown\", \"count\": " + std::to_string(playerCount)+ "}";
+        GameWebSocketController::EventAPI(doubleDown); 
+		game.Play(game.GetPlayers(), dealer, deck.GetDeck(), 0);
+        
+        Json::Value result;
+        result["message"] = "Successful Connection";
+        result["action"] = "double down controller";
+        auto resp = HttpResponse::newHttpJsonResponse(result);
+        callback(resp);
+
+    } catch(...) {
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        resp->setStatusCode(drogon::k500InternalServerError);
+        callback(resp);
+    }
+}
+
+void GameController::SplitDoubleDownController(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback)  {
+        try {
+        auto &game = Game::GetGameInstance();
+        auto &dealer = game.GetDealerInstance();
+        auto &deck = game.GetDeckInstance();
+        auto &player = game.GetPlayers()[0];
+        std::cout << "Split Double Down TIME\n";
+        int currentHand = game.GetCurrentHand();
+        std::deque<int>& currentSplitHand = player->GetSplitHands()[currentHand];
+        int balance = player->GetBalance(); 
+        int oldWager = player->GetWager();
+        int newWager = oldWager * 2;
+        std::cout << "Current Hand: " << currentHand << ", Balance: " << balance << ", Wager: " << newWager << std::endl;
+        //mark the hand as doubled down to reset wagers
+        player->SetDoubleDownFlag(1, currentHand);
+        game.HitMultipleHands(game.GetPlayers(), dealer, deck.GetDeck(), 0);
+        int playerCount = player->GetMultiHandCount(currentSplitHand);
+        std::cout << "Current Count: " << playerCount << std::endl;
+        std::string splitDoubleDown = "{\"event\": \"splitDoubleDown\", \"hand\":" + std::to_string(currentHand) + ",\"count\": " + std::to_string(playerCount)+ "}";
+        GameWebSocketController::EventAPI(splitDoubleDown); 
+        int newHand = ++currentHand;
+        game.SetCurrentHand(newHand);
+        std::cout << "NewHand: " << newHand << std::endl; 
+        int finalHand = player->GetSplitHands().size();
+        if (newHand >= finalHand) {
+            game.HandleSplitStand(game.GetPlayers(), dealer, deck.GetDeck(), newHand, 0);
+        }
+        Json::Value result;
+        result["message"] = "Successful Connection";
+        result["action"] = "double down controller";
+        auto resp = HttpResponse::newHttpJsonResponse(result);
+        callback(resp);
+
+    } catch(...) {
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        resp->setStatusCode(drogon::k500InternalServerError);
+        callback(resp);
+    }
 }
 
 void GameController::Split(const drogon::HttpRequestPtr &req,
@@ -110,13 +180,21 @@ void GameController::Split(const drogon::HttpRequestPtr &req,
         auto &deck = game.GetDeckInstance();
         auto &players = game.GetPlayers();
         auto &gameDeck = deck.GetDeck();
-        auto &gameSuitDeck = deck.GetSuitsDeck(); 
         if (action == "yes") {
             std::cout << "HTTP Request: Ready to split\n";
+            int balance = players[0]->GetBalance();
+            int wager = players[0]->GetWager();
+            if (balance < wager) {
+                 std::cout << "Cant afford new Hand" << std::endl;
+                 std::string broke = "{\"event\": \"insufficientFunds\"}";
+                 GameWebSocketController::EventAPI(broke);
+                 return;
+            }
+            
             game.SetSplitState(true);
             game.SetOnDeal(true);
             for (int i = 0; i < players.size(); i++) {
-                game.Split(players, gameDeck, gameSuitDeck, i, "yes");
+                game.Split(players, gameDeck, i, action);
             }
         }
         Json::Value result;
@@ -127,6 +205,59 @@ void GameController::Split(const drogon::HttpRequestPtr &req,
 
             } catch(...) {}
     }
+
+void GameController::ReSplit(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+        try {
+        auto json = req->getJsonObject();
+        std::string action = (*json)["split"].asString(); // "yes" or "no"
+        
+        auto &game = Game::GetGameInstance();
+		auto &deck = game.GetDeckInstance();
+        auto &players = game.GetPlayers();
+        auto &gameDeck = deck.GetDeck();
+        int nextCard = deck.GetDeck().back();
+        int currentHand = game.GetCurrentHand();
+        auto &hand = players[0]->GetSplitHands()[currentHand];
+        std::cout << "Made it here!\n";
+        if (action == "yes") { 
+                int balance = players[0]->GetBalance();
+                int wager = players[0]->GetWager();
+                if (balance < wager) {
+                     std::cout << "Cant afford new Hand" << std::endl;
+                     std::string broke = "{\"event\": \"insufficientFunds\"}";
+                     GameWebSocketController::EventAPI(broke);
+                     return;
+            }
+			    std::cout << "Create the next split hand!\n";
+				players[0]->push_back(nextCard); //push next split card into the original
+				//if they do want to keep splitting run logic here
+				std::deque<int> newHand; //create the newHand and push into the vector of hands
+				newHand.push_back(nextCard);
+				players[0]->insertHands(newHand);	
+				std::string newSplitCounter = "{\"event\": \"newSplitCounter\", \"count\": " + std::to_string(nextCard) + "}";
+			    GameWebSocketController::EventAPI(newSplitCounter);
+			}
+        if (action == "no") {
+            std::cout << "USER STANDS NO MORE SPLITTING\n";
+            std::cout << "Inserting New Card: " << nextCard << " into " << currentHand << std::endl;
+		    players[0]->insertIntoHand(nextCard, currentHand);
+		    std::cout << "Updated Size of Hand : " << currentHand << ": " << hand.size() << std::endl;
+		    int currentCount = players[0]->GetMultiHandCount(hand);
+		    std::cout << "Count: " << currentCount << "On Hand - " << currentHand << std::endl;
+            std::string updateCounter = "{\"event\": \"updateCounterOnResplitStand\", \"currentResplitHandCount\": " + std::to_string(currentCount) + ", \"currentResplitHand\": " + std::to_string(currentHand) + "}";
+		    GameWebSocketController::EventAPI(updateCounter);
+        }
+        Json::Value result;
+        result["status"] = "ok";
+        callback(drogon::HttpResponse::newHttpJsonResponse(result));
+    } catch(...) {
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        resp->setStatusCode(drogon::k500InternalServerError);
+        callback(resp);
+    }
+        }
+
 
 void GameController::SplitDecision(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
     auto json = req->getJsonObject();
@@ -151,8 +282,7 @@ void GameController::SplitDecision(const drogon::HttpRequestPtr &req, std::funct
     if (action == "hit") {
         std::cout << "Ready To HIT hand: " << game.GetCurrentHand() << std::endl;
 
-        //game.Split(game.GetPlayers(), deck.GetDeck(), deck.GetSuitsDeck(), 0, action); 
-        game.HitMultipleHands(game.GetPlayers(), deck.GetDeck(), 0);
+        game.HitMultipleHands(game.GetPlayers(), dealer, deck.GetDeck(), 0);
         game.SetOnDeal(false);
     }
     else if (action == "stand") {
@@ -172,7 +302,7 @@ void GameController::SplitDecision(const drogon::HttpRequestPtr &req, std::funct
         }
         std::deque<int> &card_deck = deck.GetDeck();
         std::cout << "HAND: " << currentHand << std::endl;
-        game.HandleSplitStand(game.GetPlayers(), game, dealer, card_deck, currentHand, currentPlayer);
+        game.HandleSplitStand(game.GetPlayers(), dealer, card_deck, currentHand, currentPlayer);
     }
 
     Json::Value result;

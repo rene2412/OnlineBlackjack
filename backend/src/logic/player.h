@@ -14,6 +14,7 @@ class Player {
 	   std::deque<int> suits;
 	   std::vector<std::deque<int>> splitHands; //for splitting, so create a vector of hands
 	   std::vector<uint8_t> doesHandContainAce; //a vector of "bools" that determines if that hand has an ace in it
+	   std::vector<uint8_t> doubleDownFlags;
 	   std::string name;
 	   int player_count;
 	   int balance;
@@ -28,7 +29,7 @@ class Player {
    public:
 	   Player() = default;
 	   Player(std::string new_name, int new_balance = 100, int new_wins = 0, int new_losses = 0, bool new_bust = false) : 
-		   name(new_name), balance(new_balance), wins(new_wins), losses(new_losses), bust(new_bust), doesHandContainAce(10, false) {
+		   name(new_name), balance(new_balance), wins(new_wins), losses(new_losses), bust(new_bust), doesHandContainAce(10, false), doubleDownFlags(10, 0) {
 		   	player_count ++;
 		    wager = 0;
 			decision = 1;
@@ -48,13 +49,15 @@ class Player {
 	   bool GetAce() const { return ace; }
 	   bool GetDoubleAce() const { return doubleAce; }  
 	   uint8_t GetAceHand(size_t index) const { return doesHandContainAce[index]; }
-	   
+	   uint8_t GetDoubleDownFlag(size_t index) const { return doubleDownFlags[index]; } 
+
 	   void SetBalance(int newBalance) { balance = newBalance; }
 	   void SetWager(int newWager) { wager = newWager; }
 	   void SetBust(bool newBust) { bust = newBust; }
 	   void SetDecision(bool newDecision) { decision = newDecision; }
 	   void SetAce(bool newState) { ace = newState; }
 	   void SetAceHand(size_t index, bool newState) { doesHandContainAce[index] = newState; }  
+	   void SetDoubleDownFlag(uint8_t newFlag, size_t index) { doubleDownFlags[index] =  newFlag; }
 	   void SetDoubleAce(bool a) { doubleAce = a; }
 	   void push_back(int N) { cards.push_back(N); }
 	   void insert_suits(char N) { suits.push_back(N); }  
@@ -77,6 +80,7 @@ class Player {
 			suits.clear();
 			splitHands.clear();
 			doesHandContainAce.clear();
+			doubleDownFlags.clear();
 		}   
 
 	   int& cardAt(size_t index) {

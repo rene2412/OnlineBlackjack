@@ -31,14 +31,35 @@ export function generateShoe(numDecks = 6) {
  */
 export function generateSplitTestShoe(splitRank = 'A') {
   const shoe = generateShoe(6);
-  // Remove 2 cards of splitRank from wherever they are
   const firstIdx  = shoe.findIndex(c => c.startsWith(splitRank));
   const [card1]   = shoe.splice(firstIdx, 1);
   const secondIdx = shoe.findIndex(c => c.startsWith(splitRank));
   const [card2]   = shoe.splice(secondIdx, 1);
-  // Insert at positions 1 and 3 (player cards in D-P-D-P order)
-  shoe.splice(1, 0, card1); // position 1
-  shoe.splice(3, 0, card2); // position 3
+  shoe.splice(1, 0, card1);
+  shoe.splice(3, 0, card2);
+  return shoe;
+}
+
+/**
+ * Generate a shoe where the player can keep splitting up to 4 hands.
+ * Stacks 8 cards of splitRank at the top so:
+ *   Initial deal (D-P-D-P): player gets rank+rank
+ *   Each split hit also draws the same rank → eligible to split again
+ */
+export function generateQuadSplitTestShoe(splitRank = '8') {
+  const shoe = generateShoe(6);
+  // Pull 8 matching cards out
+  const matches = [];
+  for (let i = shoe.length - 1; i >= 0 && matches.length < 8; i--) {
+    if (shoe[i].startsWith(splitRank)) {
+      matches.push(...shoe.splice(i, 1));
+    }
+  }
+  // Stack them at the front: D P D P P P P P
+  // Position 0 = dealer visible, 1 = player card 1
+  // Position 2 = dealer hole,    3 = player card 2
+  // Positions 4-7 = next draws (split hits all get same rank)
+  shoe.unshift(...matches.slice(0, 8));
   return shoe;
 }
 

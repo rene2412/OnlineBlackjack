@@ -10,7 +10,10 @@ class GameController : public drogon::HttpController<GameController> {
                         ADD_METHOD_TO(GameController::CurrentPlayerDecision, "/api/current-player-decision", drogon::Post);
                         ADD_METHOD_TO(GameController::PlayerWager, "/api/wager", drogon::Post);
                         ADD_METHOD_TO(GameController::Insurance, "/api/insurance-decision", drogon::Post);
+                        ADD_METHOD_TO(GameController::DoubleDownController, "/api/double-down", drogon::Post);
+                        ADD_METHOD_TO(GameController::SplitDoubleDownController, "/api/split-double-down", drogon::Post);
                         ADD_METHOD_TO(GameController::Split, "/api/split-decision", drogon::Post);
+                        ADD_METHOD_TO(GameController::ReSplit, "/api/resplit-decision", drogon::Post);
                         ADD_METHOD_TO(GameController::SplitDecision, "/api/player-split-decision", drogon::Post);
                         ADD_METHOD_TO(GameController::NextGame, "/api/next-game", drogon::Post);
                         ADD_METHOD_TO(GameController::EndSession, "/api/end-session", drogon::Post);
@@ -22,7 +25,13 @@ class GameController : public drogon::HttpController<GameController> {
                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
                 void Insurance(const drogon::HttpRequestPtr &req,
                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+                void DoubleDownController(const drogon::HttpRequestPtr &req,
+                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+                void SplitDoubleDownController(const drogon::HttpRequestPtr &req,
+                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
                 void Split(const drogon::HttpRequestPtr &req,
+                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+                void ReSplit(const drogon::HttpRequestPtr &req,
                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
                 void SplitDecision(const drogon::HttpRequestPtr &req,
                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
