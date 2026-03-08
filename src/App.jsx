@@ -59,7 +59,6 @@ export default function App() {
     if (!splitRevealPending) return;
     setSplitRevealPending(false);
     const hands = state.splitHands;
-    console.log("[splitReveal] hands at reveal time:", hands.map((h,i) => `hand${i}: won=${h.won} busted=${h.busted}`));
     const STEP = 2600;
     let bannerKey = 0;
     hands.forEach((hand, idx) => {
@@ -122,7 +121,6 @@ export default function App() {
 
     firingPostDealRef.current = true;
     modalActiveRef.current = true; // always block until event explicitly releases
-    console.log(`[postDeal] firing ${next.event} at`, Date.now());
     dispatch({ type:"UNLOCK_ACTIONS" });
     processEvent(next);
     // NOTE: firingPostDealRef and modalActiveRef are released by the event handler itself
@@ -174,7 +172,6 @@ export default function App() {
       case "__sessionToken":
         if (msg.sessionToken) {
           sessionStorage.setItem("sessionToken", msg.sessionToken);
-          console.log("[session] token stored:", msg.sessionToken);
         }
         break;
       case "__disconnected": dispatch({ type:"SET_CONNECTED", payload:false }); break;
@@ -244,7 +241,6 @@ export default function App() {
         //   GetSum() = [6, 16, 20]  → sent as [16, 20]
         // So values[0] = count after hole reveal, values[1..n] = after each new card
         const counts = msg.values || [];
-        console.log("[dealerHit] values:", counts); // debug — remove later
 
         dealerAnimDoneRef.current  = false;
         dealerCardIndexRef.current = 0;
@@ -562,10 +558,8 @@ export default function App() {
     if (postDeal.includes(msg.event)) {
       const alreadyQueued = postDealQueueRef.current.some(e => e.event === msg.event);
       if (alreadyQueued) {
-        console.warn(`[handleMessage] duplicate ${msg.event} dropped`);
         return;
       }
-      console.log(`[handleMessage] ${msg.event} queued, postDealFired=${postDealFiredRef.current}`);
       postDealQueueRef.current.push(msg);
       if (postDealFiredRef.current && !modalActiveRef.current) {
         fireNextPostDeal();
@@ -661,7 +655,6 @@ export default function App() {
     });
 
     const flush = setTimeout(() => {
-      console.log(`[flush] fired at`, Date.now(), `postDealQueue length=${postDealQueueRef.current.length}`);
       isDealingRef.current  = false;
       postDealFiredRef.current = true;
 
@@ -706,7 +699,6 @@ export default function App() {
     try { await api.sendDecision("stand"); } catch { dispatch({ type:"UNLOCK_ACTIONS" }); }
   }
   async function handleDouble() {
-    console.log("[double] clicked, wager:", state.wager, "balance:", state.balance, "locked:", state.actionsLocked);
     const doubled = state.wager * 2;
     if (doubled > state.balance) { addToast("Can't afford double!", "bust"); return; }
     dispatch({ type:"LOCK_ACTIONS" });
@@ -729,7 +721,6 @@ export default function App() {
     }
   }
   async function handleInsurance(yes) {
-    console.log("[insurance] handleInsurance called", yes);
     modalActiveRef.current    = false;
     firingPostDealRef.current = false;
     dispatch({ type:"HIDE_INSURANCE" });
@@ -757,7 +748,6 @@ export default function App() {
     await api.sendReSplit(yes);
   }
   async function handleSplitDecision(action) {
-    console.log("[split] handleSplitDecision called", action, "locked:", state.actionsLocked, "splitMode:", state.splitMode, "hand:", state.currentSplitHand);
     dispatch({ type:"LOCK_ACTIONS" });
     if (action === "stand") {
       dispatch({ type:"ADVANCE_SPLIT_HAND", payload: state.currentSplitHand + 1 });
@@ -1134,7 +1124,6 @@ export default function App() {
               <div className="action-row">
                 <button className="btn btn--hit"    onClick={handleHit}    disabled={actionsLocked}>HIT</button>
                 <button className="btn btn--stand"  onClick={handleStand}  disabled={actionsLocked}>STAND</button>
-                { console.log("[render] playerHand.length:", playerHand.length, "isPlaying:", isPlaying, "splitMode:", splitMode) }
                 {playerHand.length === 2 && <button className="btn btn--double" onClick={handleDouble} disabled={actionsLocked}>DOUBLE DOWN</button>}
               </div>
             )}

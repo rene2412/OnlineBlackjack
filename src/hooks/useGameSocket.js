@@ -23,13 +23,11 @@ export default function useGameSocket(onMessage) {
     if (unmountedRef.current) return;
     const existingToken = sessionStorage.getItem("sessionToken");
     const url = existingToken ? `${WS_URL}?token=${existingToken}` : WS_URL;
-    console.log("🔄 WebSocket connecting…", url);
     const socket = new WebSocket(url);
     socketRef.current = socket;
 
     socket.onopen = () => {
       if (unmountedRef.current) return;
-      console.log("✅ WebSocket connected");
       retryCountRef.current = 0;
       onMessageRef.current({ event: "__connected" });
     };
@@ -38,10 +36,8 @@ export default function useGameSocket(onMessage) {
       if (unmountedRef.current) return;
       try {
         const data = JSON.parse(event.data);
-        console.log("📨 WS event:", data.event, data);
         onMessageRef.current(data);
       } catch (err) {
-        console.error("❌ Invalid JSON from server:", err, event.data);
       }
     };
 
