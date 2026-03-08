@@ -14,6 +14,7 @@ const DEAL_INTERVAL  = 340;
 const CARD_ANIM_MS   = 820; // per dealer card during dealerHit
 const SWEEP_DURATION = 600;
 
+
 export default function App() {
   const [state, dispatch]    = useReducer(gameReducer, initialState);
   const stateRef             = useRef(state);
@@ -166,19 +167,19 @@ export default function App() {
     const toast = addToastRef.current;
 
     switch (msg.event) {
-       case "__connected":
-          dispatch({ type:"SET_CONNECTED", payload:true });
-          break;
-    case "sessionInit":
-          if (msg.sessionToken) {
-            sessionStorage.setItem("sessionToken", msg.sessionToken);
-            console.log("[session] token stored:", msg.sessionToken);
-          }
-          break;   
-    
-    case "__disconnected": dispatch({ type:"SET_CONNECTED", payload:false }); break;
-    
-    case "updateDealerCount":
+      case "__connected":
+        dispatch({ type:"SET_CONNECTED", payload:true });
+        break;
+      case "sessionInit":
+      case "__sessionToken":
+        if (msg.sessionToken) {
+          sessionStorage.setItem("sessionToken", msg.sessionToken);
+          console.log("[session] token stored:", msg.sessionToken);
+        }
+        break;
+      case "__disconnected": dispatch({ type:"SET_CONNECTED", payload:false }); break;
+
+      case "updateDealerCount":
         // Only used outside of dealerHit flow (e.g. initial deal)
         if (dealerAnimDoneRef.current) {
           dispatch({ type:"UPDATE_DEALER_COUNT", payload: msg.count });
@@ -548,7 +549,6 @@ export default function App() {
   }, []);
 
   const handleMessage = useCallback((msg) => {
-    console.log("[handleMessage] received:", msg.event, "isDealingRef:", isDealingRef.current);
     const neverQueue = ["endGame", "__connected", "__disconnected"];
     if (neverQueue.includes(msg.event)) {
       processEvent(msg);
@@ -584,6 +584,18 @@ export default function App() {
   async function handleDeal() {
     if (state.stagedWager <= 0) { addToast("Place a wager first!", ""); return; }
 
+    // Wait for session token to be stored before firing any API calls
+    if (!sessionStorage.getItem("sessionToken")) {
+      await new Promise(res => {
+        const interval = setInterval(() => {
+          if (sessionStorage.getItem("sessionToken")) {
+            clearInterval(interval);
+            res();
+          }
+        }, 50);
+      });
+    }
+
     // Need at least ~20 cards for a round (generous buffer)
     const remaining = parsedShoeRef.current.length - shoePositionRef.current;
     let needsShuffle = false;
@@ -597,7 +609,6 @@ export default function App() {
         addToast("Reshuffling…", "");
       }
       const freshShoe = generateShoe(6);
-      //const freshShoe = generateQuadSplitTestShoe('10');
       parsedShoeRef.current   = freshShoe.map(parseCard);
       shoePositionRef.current = 0;
       shoeInitializedRef.current = true;
@@ -797,8 +808,7 @@ export default function App() {
 
             {!connecting && !landed && (
               <>
-                <p className="conn-tagline">No Real Money. Just Casino Blackjack Vibes.</p>
-                <p className="conn-tagline">Created By: Rene Hernandez.</p>
+                <p className="conn-tagline">Casino-grade. No house advantage.</p>
                 <button className="btn btn--play-now" onClick={() => {
                   setConnecting(true);
                   setTimeout(() => setLanded(true), 2200);
@@ -929,7 +939,11 @@ export default function App() {
                 </defs>
                 <text className="felt-rules-text">
                   <textPath href="#feltCurve" startOffset="50%" textAnchor="middle">
-                    BLACKJACK PAYS 3 TO 2  ♦  DEALER MUST STAND ON 17  ♦  INSURANCE PAYS 2 TO 1
+                    {'BLACKJACK PAYS 3 TO 2  '}
+                    <tspan fill="rgba(201,168,76,0.9)">♦</tspan>
+                    {'  DEALER MUST STAND ON 17  '}
+                    <tspan fill="rgba(201,168,76,0.9)">♦</tspan>
+                    {'  INSURANCE PAYS 2 TO 1'}
                   </textPath>
                 </text>
               </svg>
@@ -983,13 +997,11 @@ export default function App() {
                         ].filter(Boolean).join(" ")}>
                           <div className="split-hand-title">Hand {idx + 1}</div>
                           <div className="count-above-wrap">
-                              {!hand.cards.some(c => c.hidden) && (
-                                <CountRing
-                                  key={`split-${idx}-${hand.count}`}
-                                  count={hand.count}
-                                  animate={idx === currentSplitHand}
-                                />
-                              )}
+                            <CountRing
+                              key={`split-${idx}-${hand.count}`}
+                              count={hand.count}
+                              animate={idx === currentSplitHand}
+                            />
                           </div>
                           <div className={["split-hand-cards",
                             showWin  ? "split-hand-cards--win"  : "",

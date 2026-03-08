@@ -432,10 +432,11 @@ html, body, #root {
   .card__rank    { font-size:0.65rem; }
   .card__suit-sm { font-size:0.4rem; }
   .card__center  { font-size:0.85rem; }
-  .felt-rules { font-size:0.42rem; gap:6px; }
+  .card--back::before { font-size:0.9rem; }
+  .felt-rules-text { font-size:7px; letter-spacing:1.5px; }
   .chip { width:46px; height:46px; }
   .btn--hit, .btn--stand { padding:11px 24px; }
-  .bet-circle-wrap { display:none; }
+  .bet-circle-wrap { display:flex; }
 }
 
 /* ══════════════════════════════════════════════
