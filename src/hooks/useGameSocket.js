@@ -2,9 +2,11 @@ import React, { useEffect, useRef, useCallback } from "react";
 
 //const WS_URL = `ws://${window.location.host}/ws/game`;
 const WS_URL = import.meta.env.VITE_WS_URL
-  ?? `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/game`;
+  ?? `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`;
+
 const RECONNECT_BASE_MS  = 1500;
 const RECONNECT_MAX_MS   = 15000;
+
 
 export default function useGameSocket(onMessage) {
   const onMessageRef  = useRef(onMessage);
@@ -13,16 +15,16 @@ export default function useGameSocket(onMessage) {
   const retryTimerRef = useRef(null);
   const unmountedRef  = useRef(false);
 
-  // Keep onMessage ref fresh without re-running the effect
   useEffect(() => {
     onMessageRef.current = onMessage;
   }, [onMessage]);
 
   const connect = useCallback(() => {
     if (unmountedRef.current) return;
-
-    console.log("🔄 WebSocket connecting…", WS_URL);
-    const socket = new WebSocket(WS_URL);
+    const existingToken = sessionStorage.getItem("sessionToken");
+    const url = existingToken ? `${WS_URL}?token=${existingToken}` : WS_URL;
+    console.log("🔄 WebSocket connecting…", url);
+    const socket = new WebSocket(url);
     socketRef.current = socket;
 
     socket.onopen = () => {
@@ -36,7 +38,7 @@ export default function useGameSocket(onMessage) {
       if (unmountedRef.current) return;
       try {
         const data = JSON.parse(event.data);
-        console.log("📨 Server event:", data.event, data);
+        console.log("📨 WS event:", data.event, data);
         onMessageRef.current(data);
       } catch (err) {
         console.error("❌ Invalid JSON from server:", err, event.data);
@@ -47,8 +49,6 @@ export default function useGameSocket(onMessage) {
       if (unmountedRef.current) return;
       console.warn("🔌 WebSocket closed:", e.code, e.reason);
       onMessageRef.current({ event: "__disconnected" });
-
-      // Exponential backoff reconnect
       const delay = Math.min(
         RECONNECT_BASE_MS * Math.pow(1.6, retryCountRef.current),
         RECONNECT_MAX_MS
@@ -58,34 +58,29 @@ export default function useGameSocket(onMessage) {
       retryTimerRef.current = setTimeout(connect, delay);
     };
 
-    socket.onerror = (err) => {
-      console.error("⚠️ WebSocket error:", err);
-      // onclose will fire after onerror — reconnect happens there
+    socket.onerror = () => {
+      // onclose fires after onerror — reconnect handled there
     };
   }, []);
 
   useEffect(() => {
     unmountedRef.current = false;
     connect();
-
     return () => {
       unmountedRef.current = true;
       clearTimeout(retryTimerRef.current);
       const s = socketRef.current;
       if (s && (s.readyState === WebSocket.OPEN || s.readyState === WebSocket.CONNECTING)) {
-        console.log("🧹 Cleaning up WebSocket");
+        console.log("🧹 Closing WebSocket");
         s.close(1000, "Component unmounted");
       }
     };
   }, [connect]);
 
-  // Expose sendMessage for any future client→server needs
   const sendMessage = useCallback((payload) => {
     const s = socketRef.current;
     if (s && s.readyState === WebSocket.OPEN) {
       s.send(typeof payload === "string" ? payload : JSON.stringify(payload));
-    } else {
-      console.warn("sendMessage called but socket not open");
     }
   }, []);
 

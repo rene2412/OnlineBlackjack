@@ -7,6 +7,7 @@ CMakeFiles/hello_server.dir/controller/controller.cpp.o
  /home/rene/OnlineBlackjack/backend/src/logic/deck.h
  /home/rene/OnlineBlackjack/backend/src/logic/game.h
  /home/rene/OnlineBlackjack/backend/src/logic/player.h
+ /home/rene/OnlineBlackjack/backend/src/session/sessionManager.h
  /home/rene/OnlineBlackjack/backend/src/socket/webSocket.h
  /home/rene/OnlineBlackjack/backend/src/controller/controller.h
  /usr/include/alloca.h
@@ -183,6 +184,7 @@ CMakeFiles/hello_server.dir/controller/controller.cpp.o
  /usr/include/c++/13/queue
  /usr/include/c++/13/ratio
  /usr/include/c++/13/set
+ /usr/include/c++/13/shared_mutex
  /usr/include/c++/13/sstream
  /usr/include/c++/13/stack
  /usr/include/c++/13/stdexcept
@@ -454,7 +456,6 @@ CMakeFiles/hello_server.dir/logic/deck.cpp.o
 
 CMakeFiles/hello_server.dir/logic/game.cpp.o
  /home/rene/OnlineBlackjack/backend/src/logic/game.cpp
- /home/rene/OnlineBlackjack/backend/src/socket/webSocket.h
  /home/rene/OnlineBlackjack/backend/src/logic/dealer.h
  /home/rene/OnlineBlackjack/backend/src/logic/deck.h
  /home/rene/OnlineBlackjack/backend/src/logic/game.h
@@ -798,8 +799,6 @@ CMakeFiles/hello_server.dir/logic/game.cpp.o
  /usr/local/include/drogon/RequestStream.h
  /usr/local/include/drogon/Session.h
  /usr/local/include/drogon/UploadFile.h
- /usr/local/include/drogon/WebSocketConnection.h
- /usr/local/include/drogon/WebSocketController.h
  /usr/local/include/drogon/drogon_callbacks.h
  /usr/local/include/drogon/exports.h
  /usr/local/include/drogon/nosql/RedisClient.h
@@ -842,6 +841,7 @@ CMakeFiles/hello_server.dir/logic/game.cpp.o
 
 CMakeFiles/hello_server.dir/logic/main.cpp.o
  /home/rene/OnlineBlackjack/backend/src/logic/main.cpp
+ /home/rene/OnlineBlackjack/backend/src/session/sessionManager.h
  /home/rene/OnlineBlackjack/backend/src/socket/webSocket.h
  /home/rene/OnlineBlackjack/backend/src/controller/controller.h
  /home/rene/OnlineBlackjack/backend/src/logic/dealer.h
@@ -1022,6 +1022,7 @@ CMakeFiles/hello_server.dir/logic/main.cpp.o
  /usr/include/c++/13/queue
  /usr/include/c++/13/ratio
  /usr/include/c++/13/set
+ /usr/include/c++/13/shared_mutex
  /usr/include/c++/13/sstream
  /usr/include/c++/13/stack
  /usr/include/c++/13/stdexcept
@@ -1235,6 +1236,7 @@ CMakeFiles/hello_server.dir/socket/webSocket.cpp.o
  /home/rene/OnlineBlackjack/backend/src/logic/deck.h
  /home/rene/OnlineBlackjack/backend/src/logic/game.h
  /home/rene/OnlineBlackjack/backend/src/logic/player.h
+ /home/rene/OnlineBlackjack/backend/src/session/sessionManager.h
  /home/rene/OnlineBlackjack/backend/src/socket/webSocket.h
  /usr/include/alloca.h
  /usr/include/arpa/inet.h
@@ -1410,6 +1412,7 @@ CMakeFiles/hello_server.dir/socket/webSocket.cpp.o
  /usr/include/c++/13/queue
  /usr/include/c++/13/ratio
  /usr/include/c++/13/set
+ /usr/include/c++/13/shared_mutex
  /usr/include/c++/13/sstream
  /usr/include/c++/13/stack
  /usr/include/c++/13/stdexcept

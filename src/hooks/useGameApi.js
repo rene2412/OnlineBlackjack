@@ -2,11 +2,18 @@ import { useCallback } from "react";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
+function getToken() {
+  return sessionStorage.getItem("sessionToken") ?? "";
+}
+
 async function post(endpoint, body) {
   console.log(`[api] POST ${endpoint}`, body);
   const res = await fetch(`${API_BASE}${endpoint}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Session-Token": getToken(),
+    },
     body: JSON.stringify(body),
   });
   console.log(`[api] ${endpoint} response:`, res.status);

@@ -6,6 +6,7 @@ CMakeFiles/hello_server.dir/controller/controller.cpp.o: controller/controller.c
   logic/deck.h \
   logic/game.h \
   logic/player.h \
+  session/sessionManager.h \
   socket/webSocket.h \
   controller/controller.h \
   /usr/include/alloca.h \
@@ -182,6 +183,7 @@ CMakeFiles/hello_server.dir/controller/controller.cpp.o: controller/controller.c
   /usr/include/c++/13/queue \
   /usr/include/c++/13/ratio \
   /usr/include/c++/13/set \
+  /usr/include/c++/13/shared_mutex \
   /usr/include/c++/13/sstream \
   /usr/include/c++/13/stack \
   /usr/include/c++/13/stdexcept \
@@ -451,7 +453,6 @@ CMakeFiles/hello_server.dir/logic/deck.cpp.o: logic/deck.cpp \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h
 
 CMakeFiles/hello_server.dir/logic/game.cpp.o: logic/game.cpp \
-  socket/webSocket.h \
   logic/dealer.h \
   logic/deck.h \
   logic/game.h \
@@ -795,8 +796,6 @@ CMakeFiles/hello_server.dir/logic/game.cpp.o: logic/game.cpp \
   /usr/local/include/drogon/RequestStream.h \
   /usr/local/include/drogon/Session.h \
   /usr/local/include/drogon/UploadFile.h \
-  /usr/local/include/drogon/WebSocketConnection.h \
-  /usr/local/include/drogon/WebSocketController.h \
   /usr/local/include/drogon/drogon_callbacks.h \
   /usr/local/include/drogon/exports.h \
   /usr/local/include/drogon/nosql/RedisClient.h \
@@ -838,6 +837,7 @@ CMakeFiles/hello_server.dir/logic/game.cpp.o: logic/game.cpp \
   /usr/local/include/trantor/utils/Utilities.h
 
 CMakeFiles/hello_server.dir/logic/main.cpp.o: logic/main.cpp \
+  session/sessionManager.h \
   socket/webSocket.h \
   controller/controller.h \
   logic/dealer.h \
@@ -1018,6 +1018,7 @@ CMakeFiles/hello_server.dir/logic/main.cpp.o: logic/main.cpp \
   /usr/include/c++/13/queue \
   /usr/include/c++/13/ratio \
   /usr/include/c++/13/set \
+  /usr/include/c++/13/shared_mutex \
   /usr/include/c++/13/sstream \
   /usr/include/c++/13/stack \
   /usr/include/c++/13/stdexcept \
@@ -1230,6 +1231,7 @@ CMakeFiles/hello_server.dir/socket/webSocket.cpp.o: socket/webSocket.cpp \
   logic/deck.h \
   logic/game.h \
   logic/player.h \
+  session/sessionManager.h \
   socket/webSocket.h \
   /usr/include/alloca.h \
   /usr/include/arpa/inet.h \
@@ -1405,6 +1407,7 @@ CMakeFiles/hello_server.dir/socket/webSocket.cpp.o: socket/webSocket.cpp \
   /usr/include/c++/13/queue \
   /usr/include/c++/13/ratio \
   /usr/include/c++/13/set \
+  /usr/include/c++/13/shared_mutex \
   /usr/include/c++/13/sstream \
   /usr/include/c++/13/stack \
   /usr/include/c++/13/stdexcept \
@@ -1787,6 +1790,8 @@ logic/main.cpp:
 
 /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
 
+/usr/include/x86_64-linux-gnu/bits/stdint-least.h:
+
 /usr/include/c++/13/bits/unordered_set.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
@@ -1825,15 +1830,15 @@ logic/main.cpp:
 
 /usr/include/c++/13/cstddef:
 
-/usr/include/c++/13/bits/uses_allocator.h:
+/usr/include/c++/13/cstdint:
+
+/usr/include/c++/13/cstdlib:
 
 /usr/include/c++/13/bits/postypes.h:
 
 /usr/include/c++/13/bits/stl_multiset.h:
 
-/usr/include/c++/13/cstdint:
-
-/usr/include/c++/13/cstdlib:
+/usr/include/c++/13/bits/uses_allocator.h:
 
 /usr/include/c++/13/bits/sstream.tcc:
 
@@ -1909,6 +1914,8 @@ logic/deck.cpp:
 
 /usr/include/c++/13/bits/ios_base.h:
 
+/usr/include/c++/13/bits/invoke.h:
+
 /usr/include/jsoncpp/json/reader.h:
 
 /usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
@@ -1916,14 +1923,6 @@ logic/deck.cpp:
 /usr/include/c++/13/bits/node_handle.h:
 
 controller/controller.h:
-
-/usr/include/c++/13/bits/predefined_ops.h:
-
-/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
-
-/usr/include/c++/13/condition_variable:
-
-/usr/include/c++/13/iosfwd:
 
 /usr/include/c++/13/bits/enable_special_members.h:
 
@@ -1999,6 +1998,10 @@ controller/controller.h:
 
 /usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
+/usr/include/x86_64-linux-gnu/c++/13/bits/ctype_base.h:
+
+/usr/include/c++/13/any:
+
 /usr/include/asm-generic/posix_types.h:
 
 /usr/include/stdc-predef.h:
@@ -2007,11 +2010,23 @@ controller/controller.h:
 
 /usr/include/c++/13/algorithm:
 
+/usr/include/c++/13/array:
+
+/usr/include/x86_64-linux-gnu/bits/sockaddr.h:
+
+/usr/include/c++/13/bits/stl_iterator_base_funcs.h:
+
+/usr/include/asm-generic/errno-base.h:
+
+/usr/include/c++/13/bits/hash_bytes.h:
+
 logic/dealer.h:
 
 /usr/include/alloca.h:
 
 /usr/include/c++/13/bits/streambuf.tcc:
+
+session/sessionManager.h:
 
 /usr/include/c++/13/bit:
 
@@ -2026,6 +2041,22 @@ logic/game.cpp:
 /usr/include/c++/13/pstl/execution_defs.h:
 
 /usr/include/linux/stddef.h:
+
+/usr/include/c++/13/bits/predefined_ops.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
+
+/usr/include/c++/13/condition_variable:
+
+/usr/include/c++/13/iosfwd:
+
+/usr/local/include/drogon/orm/ArrayParser.h:
+
+/usr/include/c++/13/bits/streambuf_iterator.h:
+
+/usr/include/c++/13/ostream:
+
+/usr/include/c++/13/bits/cpp_type_traits.h:
 
 /usr/include/c++/13/bits/erase_if.h:
 
@@ -2052,20 +2083,6 @@ socket/webSocket.h:
 /usr/include/c++/13/bits/concept_check.h:
 
 logic/game.h:
-
-/usr/include/x86_64-linux-gnu/c++/13/bits/ctype_base.h:
-
-/usr/include/c++/13/any:
-
-/usr/include/c++/13/array:
-
-/usr/include/x86_64-linux-gnu/bits/sockaddr.h:
-
-/usr/include/c++/13/bits/hash_bytes.h:
-
-/usr/include/c++/13/bits/stl_iterator_base_funcs.h:
-
-/usr/include/asm-generic/errno-base.h:
 
 /usr/include/assert.h:
 
@@ -2107,8 +2124,6 @@ logic/game.h:
 
 /usr/include/x86_64-linux-gnu/bits/endianness.h:
 
-/usr/include/c++/13/bits/invoke.h:
-
 /usr/include/x86_64-linux-gnu/c++/13/bits/ctype_inline.h:
 
 /usr/include/c++/13/bits/std_function.h:
@@ -2126,14 +2141,6 @@ socket/webSocket.cpp:
 /usr/include/c++/13/bits/deque.tcc:
 
 /usr/include/x86_64-linux-gnu/bits/endian.h:
-
-/usr/local/include/drogon/orm/ArrayParser.h:
-
-/usr/include/c++/13/bits/streambuf_iterator.h:
-
-/usr/include/c++/13/ostream:
-
-/usr/include/c++/13/bits/cpp_type_traits.h:
 
 /usr/include/c++/13/bits/cxxabi_forced.h:
 
@@ -2192,8 +2199,6 @@ controller/controller.cpp:
 /usr/include/c++/13/variant:
 
 /usr/include/c++/13/cerrno:
-
-/usr/include/x86_64-linux-gnu/bits/stdint-least.h:
 
 /usr/include/c++/13/chrono:
 
@@ -2297,6 +2302,12 @@ logic/player.h:
 
 /usr/include/c++/13/thread:
 
+/usr/include/c++/13/shared_mutex:
+
+/usr/include/jsoncpp/json/config.h:
+
+/usr/include/jsoncpp/json/version.h:
+
 /usr/include/c++/13/stdexcept:
 
 /usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
@@ -2330,10 +2341,6 @@ logic/player.h:
 /usr/include/c++/13/future:
 
 /usr/include/features.h:
-
-/usr/include/jsoncpp/json/config.h:
-
-/usr/include/jsoncpp/json/version.h:
 
 /usr/include/jsoncpp/json/forwards.h:
 

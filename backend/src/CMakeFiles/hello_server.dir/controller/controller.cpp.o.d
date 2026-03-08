@@ -308,4 +308,6 @@ CMakeFiles/hello_server.dir/controller/controller.cpp.o: \
  /home/rene/OnlineBlackjack/backend/src/controller/../socket/webSocket.h \
  /usr/local/include/drogon/WebSocketController.h \
  /usr/local/include/drogon/WebSocketConnection.h \
- /usr/include/jsoncpp/json/value.h
+ /usr/include/jsoncpp/json/value.h \
+ /home/rene/OnlineBlackjack/backend/src/controller/../session/sessionManager.h \
+ /usr/include/c++/13/shared_mutex

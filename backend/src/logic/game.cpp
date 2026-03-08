@@ -1,5 +1,4 @@
 #include "game.h"
-#include "../socket/webSocket.h"
 #define BLACKJACK 21
 using namespace drogon;
 const int ACE_11 = 11;
@@ -131,7 +130,7 @@ void Game::Deal(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
     	if (IsSplitValid(players, 0)) {
 				std::cout << "Sending Split API\n";
 		        std::string split = "{\"event\": \"playerSplitChoice\"}";
-				GameWebSocketController::EventAPI(split);
+				SendEvent(split);
 			}   
 }
 
@@ -204,18 +203,18 @@ void Game::Split(std::vector<std::shared_ptr<Player>> &players, std::deque<int> 
 			//std::cout << "First Card:"  << firstCard << std::endl;
 			//std::cout << "Second Card:"  << secondCard << std::endl;
 			std::string sendFirstCounter =  "{\"event\": \"firstSplitCounter\",  \"count\": " + std::to_string(firstCard) + "}";
-			GameWebSocketController::EventAPI(sendFirstCounter);
+			SendEvent(sendFirstCounter);
 			if (secondCard == 1) {
 			//this is 2nd ace, but in its own seperate hand it should count as 11
 			secondCard = 11;
 			//make the 2nd card of the original hand worth 11
 			players[index]->replace(1, 11);
 			std::string sendSecondCounter =  "{\"event\": \"secondSplitCounter\", \"count\": " + std::to_string(secondCard) + "}";
-			GameWebSocketController::EventAPI(sendSecondCounter);
+			SendEvent(sendSecondCounter);
 			}
 			if (secondCard != 1) {
 				std::string sendSecondCounter =  "{\"event\": \"secondSplitCounter\", \"count\": " + std::to_string(secondCard) + "}";
-				GameWebSocketController::EventAPI(sendSecondCounter);
+				SendEvent(sendSecondCounter);
 			}
 			firstHand.push_back(firstCard);
 			secondHand.push_back(secondCard);
@@ -253,10 +252,10 @@ void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, Deale
 			if (nextCard == firstCard and playerSplitHands[currentHand].size() == 1 and !players[index]->GetDoubleDownFlag(currentHand)) {
 			std::cout << "It matches" << std::endl;
 			std::string splitHit = "{\"event\": \"splitHit\", \"currentHandCount\": " + std::to_string(currentCount) + ", \"currentHand\": " + std::to_string(currentHand) + ",\"firstCard\": " + std::to_string(firstCard) + "}";
-			GameWebSocketController::EventAPI(splitHit);
+			SendEvent(splitHit);
 			//if the next card is the same, ask user if they want to keep splitting, send api here, the api should call the /api/resplit-decision controller
 			std::string trigger = "{\"event\": \"callReSplitController\"}";
-			GameWebSocketController::EventAPI(trigger);
+			SendEvent(trigger);
 	   		return;
 			}
 		if (firstCard == 11) { 
@@ -283,7 +282,7 @@ void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, Deale
 		std::cout << "Updated Size of Hand : " << currentHand << ": " << playerSplitHands[currentHand].size() << std::endl;
 		currentCount = players[index]->GetMultiHandCount(hand);
 		std::string splitHit = "{\"event\": \"splitHit\", \"currentHandCount\": " + std::to_string(currentCount) + ", \"currentHand\": " + std::to_string(currentHand) + ",\"firstCard\": " + std::to_string(firstCard) + "}";
-		GameWebSocketController::EventAPI(splitHit);
+		SendEvent(splitHit);
 		
 		for (int x : hand) { std::cout << "Hand: " << currentHand << "| Current Card: " << x << std::endl; }  
 		//this bust will run the hands are still active, 
@@ -293,7 +292,7 @@ void Game::HitMultipleHands(std::vector<std::shared_ptr<Player>> &players, Deale
 			int newBalance = players[index]->GetBalance() - payout;
 			players[index]->SetBalance(newBalance);
 			std::string playerBust = "{\"event\": \"playerSplitBust\", \"hand\": " + std::to_string(currentHand) + ", \"updateBalance\": " + std::to_string(newBalance) + "}";
-			GameWebSocketController::EventAPI(playerBust);
+			SendEvent(playerBust);
 			int newHand = ++currentHand;
 			SetCurrentHand(newHand);
 			std::cout << "New Hand: " << newHand << std::endl;
@@ -321,7 +320,7 @@ void Game::HandleSplitStand(std::vector<std::shared_ptr<Player>> &players, Deale
 				}
 			}
 			animation += "]}";
-			GameWebSocketController::EventAPI(animation);
+			SendEvent(animation);
 			SplitPlay(players, dealer, deck);
 	}
 }
@@ -350,13 +349,13 @@ void Game::SplitPlay(std::vector<std::shared_ptr<Player>> &players, Dealer &deal
 						int newBalance = player->GetBalance() + payout;
 						player->SetBalance(newBalance);
 						std::string splitBlackjack = "{\"event\": \"playerSplitBlackjack\", \"handCount\": " + std::to_string(currentHand) + ", \"updateBalance\": " + std::to_string(newBalance) + "}";
-						GameWebSocketController::EventAPI(splitBlackjack);
+						SendEvent(splitBlackjack);
 					}
 					//push
 					if (hasHandBusted == false and handCount == dealer.count()) {
 							std::cout << "Split Push\n"; 
 							std::string splitPush = "{\"event\": \"playerSplitPush\", \"handCount\": " + std::to_string(currentHand) + "}";
-							GameWebSocketController::EventAPI(splitPush);
+							SendEvent(splitPush);
 					}
 					//player Hand beats dealers
 					if ((wonOnBlackjack == false and handCount > dealer.count() and dealer.count() <= 21) or (wonOnBlackjack == false and dealer.count() > 21)) {
@@ -368,7 +367,7 @@ void Game::SplitPlay(std::vector<std::shared_ptr<Player>> &players, Dealer &deal
 							int newBalance = player->GetBalance() + payout;
 							player->SetBalance(newBalance);
 							std::string splitPlayerWin = "{\"event\": \"playerSplitWin\", \"handCount\": " + std::to_string(currentHand) + ", \"updateBalance\": " + std::to_string(newBalance) + "}";
-							GameWebSocketController::EventAPI(splitPlayerWin);
+							SendEvent(splitPlayerWin);
 					}
 					//dealer beats player hand
 					if (hasHandBusted == false and  (handCount < dealer.count() and dealer.count() <= 21)) {
@@ -381,14 +380,14 @@ void Game::SplitPlay(std::vector<std::shared_ptr<Player>> &players, Dealer &deal
 							if (newBalance < 0) newBalance = 0;
 							player->SetBalance(newBalance);
 							std::string splitDealerWin = "{\"event\": \"dealerSplitWin\", \"handCount\": " + std::to_string(currentHand) + ", \"updateBalance\": " + std::to_string(newBalance) + "}";
-							GameWebSocketController::EventAPI(splitDealerWin);
+							SendEvent(splitDealerWin);
 					}
 	 				currentHand ++;
 			}
 	 currentPlayer ++;
 	}
 	std::string splitRoundDone = "{\"event\": \"splitRoundDone\"}";
-	GameWebSocketController::EventAPI(splitRoundDone);
+	SendEvent(splitRoundDone);
 }
 
 void Game::DoubleDown(std::vector<std::shared_ptr<Player>> &players, int index) {
@@ -403,7 +402,7 @@ void Game::Insurance(std::vector<std::shared_ptr<Player>> &players, Dealer &deal
 				std::cout << player->GetName() << ", do you want Insurance?" << std::endl;
 			}
 				std::string playerInsuranceChoice =  "{\"event\": \"playerInsuranceChoice\"}";
-				GameWebSocketController::EventAPI(playerInsuranceChoice);
+				SendEvent(playerInsuranceChoice);
 	}
 }
 
@@ -419,13 +418,15 @@ void Game::Dealer_BlackJack(std::vector<std::shared_ptr<Player>> &players, Deale
 			if (player->GetCount() == BLACKJACK) { 
 				Push(players, index);
 				std::string push =  "{\"event\": \"blackjackPush\"}";
-				GameWebSocketController::EventAPI(push);
+				SendEvent(push);
 				return;					
 				}	
 			 	index ++;
 		 	}
-				std::string playerInsuranceChoice =  "{\"event\": \"dealerBlackjack\"}";
-				GameWebSocketController::EventAPI(playerInsuranceChoice);	
+				//std::string dealerBlackjack =  "{\"event\": \"dealerBlackjack\"}";
+				//SendEvent(dealerBlackjack);
+				std::string playerInsuranceChoice =  "{\"event\": \"playerInsuranceChoice\"}";
+				SendEvent(playerInsuranceChoice);
 		}
 }
 
@@ -436,7 +437,7 @@ void Game::Player_BlackJack(std::vector<std::shared_ptr<Player>> &players, Deale
 			if (player->GetCount() == BLACKJACK) {
 				std::cout << "Player Blackjack!\n";
 				std::string blackjack = "{\"event\": \"playerBlackJack\"}";
-				GameWebSocketController::EventAPI(blackjack);
+				SendEvent(blackjack);
 				int payout = player->GetWager() * 1.5;
 				int newBalance = payout + player->GetBalance();
 				player->SetBalance(newBalance);
@@ -497,13 +498,13 @@ void Game::PlayerDecisions(std::vector<std::shared_ptr<Player>> &players, std::d
 				Play(players, dealer, deck, index);
 				int playerCount = player->GetCount();
 				std::string updateCount = "{\"event\": \"updateCount\", \"count\": " + std::to_string(playerCount) + "}";
-				GameWebSocketController::EventAPI(updateCount);
+				SendEvent(updateCount);
 			try {
 				std::cout << "STATUS: " << player->GetBust() << std::endl;
 				if (player->GetCount() <= 21 and !player->GetBust()) {
 					std::cout << "Sending Hit API but hasnt busted yet\n";	
 					std::string animation = "{\"event\": \"hit\"}";
-					GameWebSocketController::EventAPI(animation);
+					SendEvent(animation);
 				}
 			} catch(const std::exception& e) {
 				std::cerr << "Event API exception: " << e.what() << std::endl;
@@ -524,7 +525,7 @@ void Game::PlayerDecisions(std::vector<std::shared_ptr<Player>> &players, std::d
 			}
 			animation += "]}";
 			std::cout << "Dealer Hand: " << animation << std::endl;
-			GameWebSocketController::EventAPI(animation);
+			SendEvent(animation);
 			player->SetDecision(0);
 			Play(players, dealer, deck, index);
 			}
@@ -547,7 +548,7 @@ void Game::Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
 						std::cout << "Sending Busted API\n";	
 						std::string playerBust = "{\"event\": \"playerBust\", \"newBalance\": " + std::to_string(balance) + "}";
 						std::cout << "PlayerBust API: " << playerBust << std::endl;
-						GameWebSocketController::EventAPI(playerBust);
+						SendEvent(playerBust);
 						return;
 			}
 			if (dealer.count() > 21) {
@@ -562,7 +563,7 @@ void Game::Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
 				}
 				int balance = players[index]->GetBalance();
 				std::string dealerBust = "{\"event\": \"dealerBust\", \"newBalance\": " + std::to_string(balance) + "}";
-				GameWebSocketController::EventAPI(dealerBust);
+				SendEvent(dealerBust);
 				return;
 			}
 				for (auto &player : players) {
@@ -577,7 +578,7 @@ void Game::Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
 						playerBalance = playerBalance - playerWager;
 						player->SetBalance(playerBalance);
 						std::string dealerWin = "{\"event\": \"dealerWin\", \"newBalance\": " + std::to_string(playerBalance) + "}";
-						GameWebSocketController::EventAPI(dealerWin);
+						SendEvent(dealerWin);
 					}
 				}
 				if (dealer.count() >= 17 and player->GetCount() >= 17 and player->GetDecision() == 0) {
@@ -585,7 +586,7 @@ void Game::Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
 					std::cout << "Push!" << std::endl;
 					Push(players, index);
 					std::string animation =  "{\"event\": \"push\"}";
-					GameWebSocketController::EventAPI(animation);
+					SendEvent(animation);
 					}
 				}
 
@@ -596,8 +597,7 @@ void Game::Play(std::vector<std::shared_ptr<Player>> &players, Dealer &dealer, s
 					playerBalance = playerBalance + playerWager;
 					player->SetBalance(playerBalance);
 					std::string playerName = "{\"event\": \"playerWin\", \"newBalance\": " + std::to_string(playerBalance) + "}";
-					GameWebSocketController::EventAPI(playerName);
+					SendEvent(playerName);
 				}
 			}
 	  }
-

@@ -11,4 +11,5 @@ class Deck {
 	std::deque<char> &GetSuitsDeck();
 	void push_back(int N);
 	void insertSuits(char N);
+	void ClearDeck();
 };

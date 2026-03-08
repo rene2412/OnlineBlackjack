@@ -8,18 +8,36 @@
 #include <string>
 using namespace drogon;
 
-class GameWebSocketController : public drogon::WebSocketController<GameWebSocketController> {
-    private:
-        static std::vector<WebSocketConnectionPtr> clients;
-        static std::mutex clientsMutex;
-    public:
-        virtual void handleNewConnection(const HttpRequestPtr &req, const WebSocketConnectionPtr &connection) override;
-        virtual void handleNewMessage(const WebSocketConnectionPtr &connection, std::string &&message, const WebSocketMessageType &type) override;
-        virtual void handleConnectionClosed(const WebSocketConnectionPtr &connection) override;
-        static void EventAPI(const std::string &message);
+class GameWebSocketController
+    : public drogon::WebSocketController<GameWebSocketController>
+{
+public:
+    void handleNewConnection(const HttpRequestPtr &req, const WebSocketConnectionPtr &connection) override;
+    void handleConnectionClosed(const WebSocketConnectionPtr &connection) override;
+    void handleNewMessage(const WebSocketConnectionPtr &connection, std::string &&message, const WebSocketMessageType &type) override;
+    static void EventAPI(const std::string &token, const std::string &message);
 
-        WS_PATH_LIST_BEGIN
-            WS_PATH_ADD("/ws/game");
-        WS_PATH_LIST_END
-
+    WS_PATH_LIST_BEGIN
+        WS_PATH_ADD("/ws");
+    WS_PATH_LIST_END
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

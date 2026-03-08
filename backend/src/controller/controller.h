@@ -2,41 +2,57 @@
 #include <drogon/HttpController.h>
 #include "../logic/game.h"
 #include "../socket/webSocket.h"
+#include "../session/sessionManager.h"
 #include <deque>
-class GameController : public drogon::HttpController<GameController> {
-        public:
-                GameController() = default;
-                METHOD_LIST_BEGIN
-                        ADD_METHOD_TO(GameController::CurrentPlayerDecision, "/api/current-player-decision", drogon::Post);
-                        ADD_METHOD_TO(GameController::PlayerWager, "/api/wager", drogon::Post);
-                        ADD_METHOD_TO(GameController::Insurance, "/api/insurance-decision", drogon::Post);
-                        ADD_METHOD_TO(GameController::DoubleDownController, "/api/double-down", drogon::Post);
-                        ADD_METHOD_TO(GameController::SplitDoubleDownController, "/api/split-double-down", drogon::Post);
-                        ADD_METHOD_TO(GameController::Split, "/api/split-decision", drogon::Post);
-                        ADD_METHOD_TO(GameController::ReSplit, "/api/resplit-decision", drogon::Post);
-                        ADD_METHOD_TO(GameController::SplitDecision, "/api/player-split-decision", drogon::Post);
-                        ADD_METHOD_TO(GameController::NextGame, "/api/next-game", drogon::Post);
-                        ADD_METHOD_TO(GameController::EndSession, "/api/end-session", drogon::Post);
-                METHOD_LIST_END
 
-                void CurrentPlayerDecision(const drogon::HttpRequestPtr &req,
-                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-                void PlayerWager(const drogon::HttpRequestPtr &req,
-                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-                void Insurance(const drogon::HttpRequestPtr &req,
-                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-                void DoubleDownController(const drogon::HttpRequestPtr &req,
-                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-                void SplitDoubleDownController(const drogon::HttpRequestPtr &req,
-                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-                void Split(const drogon::HttpRequestPtr &req,
-                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-                void ReSplit(const drogon::HttpRequestPtr &req,
-                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-                void SplitDecision(const drogon::HttpRequestPtr &req,
-                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-                void NextGame(const drogon::HttpRequestPtr &req,
-                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-                void EndSession(const drogon::HttpRequestPtr &req,
-                        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+class GameController : public drogon::HttpController<GameController> {
+public:
+    GameController() = default;
+
+    METHOD_LIST_BEGIN
+        ADD_METHOD_TO(GameController::CurrentPlayerDecision, "/api/current-player-decision", drogon::Post);
+        ADD_METHOD_TO(GameController::PlayerWager,           "/api/wager",                   drogon::Post);
+        ADD_METHOD_TO(GameController::Insurance,             "/api/insurance-decision",       drogon::Post);
+        ADD_METHOD_TO(GameController::DoubleDownController,  "/api/double-down",              drogon::Post);
+        ADD_METHOD_TO(GameController::SplitDoubleDownController, "/api/split-double-down",   drogon::Post);
+        ADD_METHOD_TO(GameController::Split,                 "/api/split-decision",           drogon::Post);
+        ADD_METHOD_TO(GameController::ReSplit,               "/api/resplit-decision",         drogon::Post);
+        ADD_METHOD_TO(GameController::SplitDecision,         "/api/player-split-decision",    drogon::Post);
+        ADD_METHOD_TO(GameController::NextGame,              "/api/next-game",                drogon::Post);
+        ADD_METHOD_TO(GameController::EndSession,            "/api/end-session",              drogon::Post);
+    METHOD_LIST_END
+
+    void CurrentPlayerDecision(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+    void PlayerWager(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+    void Insurance(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+    void DoubleDownController(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+    void SplitDoubleDownController(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+    void Split(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+    void ReSplit(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+    void SplitDecision(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+    void NextGame(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+    void EndSession(const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+
+protected:
+    static GameSession* getSession(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &callback) {
+        auto token = req->getHeader("X-Session-Token");
+        auto* session = SessionManager::instance().getSession(token);
+        if (!session) {
+            auto resp = drogon::HttpResponse::newHttpResponse();
+            resp->setStatusCode(drogon::k401Unauthorized);
+            callback(resp);
+            return nullptr;
+        }
+        return session;
+    }
 };

@@ -48,21 +48,22 @@ export function generateSplitTestShoe(splitRank = 'A') {
  */
 export function generateQuadSplitTestShoe(splitRank = '8') {
   const shoe = generateShoe(6);
-  // Pull 8 matching cards out
   const matches = [];
-  for (let i = shoe.length - 1; i >= 0 && matches.length < 8; i--) {
+  for (let i = 0; i < shoe.length && matches.length < 8; i++) {
     if (shoe[i].startsWith(splitRank)) {
-      matches.push(...shoe.splice(i, 1));
+      matches.push(shoe[i]);
     }
   }
-  // Stack them at the front: D P D P P P P P
-  // Position 0 = dealer visible, 1 = player card 1
-  // Position 2 = dealer hole,    3 = player card 2
-  // Positions 4-7 = next draws (split hits all get same rank)
-  shoe.unshift(...matches.slice(0, 8));
-  return shoe;
+  // Remove them from shoe
+  let removed = 0;
+  const filtered = shoe.filter(c => {
+    if (removed < 8 && c.startsWith(splitRank)) { removed++; return false; }
+    return true;
+  });
+  // Stack at front: D P D P P P P P
+  filtered.unshift(...matches.slice(0, 8));
+  return filtered;
 }
-
 /**
  * Parse a card string into display data.
  * "AH"  → { rank:"A",  suit:"H", value:11, color:"red",   symbol:"♥" }
