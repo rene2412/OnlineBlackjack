@@ -798,7 +798,8 @@ export default function App() {
 
             {!connecting && !landed && (
               <>
-                <p className="conn-tagline">Casino-grade. No house advantage.</p>
+                <p className="conn-tagline">No Real Money. Just Casino Blackjack Vibes.</p>
+                <p className="conn-tagline">Created By: Rene Hernandez.</p>
                 <button className="btn btn--play-now" onClick={() => {
                   setConnecting(true);
                   setTimeout(() => setLanded(true), 2200);
