@@ -344,8 +344,8 @@ html, body, #root {
 
   .card { width: 48px; height: 70px; }
   .card__rank    { font-size: 0.58rem; }
-  .card__suit-sm { font-size: 0.30rem; }
-  .card__center  { font-size: 0.78rem; }
+  .card__suit-sm { font-size: 0.25rem; }
+  .card__center  { font-size: 0.58rem; }
   .card--back::before { font-size: 0.5rem; }
 
   .count-ring { width: 36px; height: 36px; }
