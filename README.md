@@ -14,6 +14,6 @@ This is a complete Blackjack game engine implemented entirely in C++ and React. 
 - Data structures and algorithms for game state management
 - WebSocket / HTTP integration (multiplayer coming soon)
 
-## Demo
-Watch the gameplay: [YouTube Demo](https://www.youtube.com/@renehernandez6562)
+## Play
+Play Here: https://onlineblackjack-production.up.railway.app/
 
