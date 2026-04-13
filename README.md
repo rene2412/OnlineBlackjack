@@ -1,7 +1,7 @@
 # OnlineBlackjack
 
 ## Overview
-This is a complete Blackjack game engine implemented entirely in C++. It supports:
+This is a complete Blackjack game engine implemented entirely in C++ and React. It supports:
 - Player vs Dealer gameplay
 - Split hands
 - Betting system
